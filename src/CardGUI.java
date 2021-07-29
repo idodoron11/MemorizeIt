@@ -11,7 +11,7 @@ public class CardGUI extends JFrame {
     private JButton exposeAnswerButton;
     private JLabel questionDescription;
     private JLabel questionAnswer;
-    private CardsQueue queue = new CardsQueue();
+    private final CardsQueue queue = new CardsQueue();
     private Card currentCard;
 
     public CardGUI(String title){
@@ -64,8 +64,8 @@ public class CardGUI extends JFrame {
             this.vagueButton.setVisible(false);
             this.exposeAnswerButton.setVisible(false);
         } else {
-            this.questionDescription.setText(currentCard.getQuestion());
-            this.questionAnswer.setText(currentCard.getAnswer());
+            this.questionDescription.setText("<html><h1>"+currentCard.getQuestion()+"</h1></html>");
+            this.questionAnswer.setText("<html><div style=\"width: 250px;\">"+currentCard.getAnswer()+"</div></html>");
             this.questionAnswer.setVisible(false);
             this.exposeAnswerButton.setVisible(true);
         }

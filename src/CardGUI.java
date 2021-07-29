@@ -2,6 +2,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class CardGUI extends JFrame {
     private JPanel mainPanel;
@@ -41,5 +43,14 @@ public class CardGUI extends JFrame {
     public static void main(String[] args) {
         JFrame frame = new CardGUI("MemorizeIt");
         frame.setVisible(true);
+        DBUtils db = new DBUtils();
+        try {
+            ResultSet rs = db.displayQuestions();
+            while(rs.next()) {
+                System.out.println(rs.getString("question"));
+            }
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 }

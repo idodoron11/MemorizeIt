@@ -1,20 +1,18 @@
 import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.awt.event.*;
 
 public class CardGUI extends JFrame {
     private JPanel mainPanel;
     private JPanel Content;
     private JPanel Dashboard;
     private JButton wellButton;
-    private JButton vagueButton;
     private JButton badButton;
+    private JButton vagueButton;
     private JButton exposeAnswerButton;
     private JLabel questionDescription;
     private JLabel questionAnswer;
+    private CardsQueue queue = new CardsQueue();
+    private Card currentCard;
 
     public CardGUI(String title){
         super(title);
@@ -22,11 +20,26 @@ public class CardGUI extends JFrame {
         this.setContentPane(mainPanel);
         this.pack();
         this.hideAnswer();
-        exposeAnswerButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                exposeAnswer();
+        this.currentCard = null;
+        updateQuestion();
+        exposeAnswerButton.addActionListener(e -> exposeAnswer());
+        wellButton.addActionListener(e -> {
+            if (currentCard != null) {
+                currentCard.interact(1);
             }
+            updateQuestion();
+        });
+        vagueButton.addActionListener(e -> {
+            if (currentCard != null) {
+                currentCard.interact(0.5);
+            }
+            updateQuestion();
+        });
+        badButton.addActionListener(e -> {
+            if (currentCard != null) {
+                currentCard.interact();
+            }
+            updateQuestion();
         });
     }
 
@@ -40,17 +53,26 @@ public class CardGUI extends JFrame {
         this.questionAnswer.setVisible(false);
     }
 
+    public void updateQuestion() {
+        currentCard = queue.getNextCard();
+        if (currentCard == null) {
+            this.questionDescription.setText("There are no more questions for now. Please come back later.");
+            this.questionAnswer.setText("");
+            this.questionAnswer.setVisible(false);
+            this.wellButton.setVisible(false);
+            this.badButton.setVisible(false);
+            this.vagueButton.setVisible(false);
+            this.exposeAnswerButton.setVisible(false);
+        } else {
+            this.questionDescription.setText(currentCard.getQuestion());
+            this.questionAnswer.setText(currentCard.getAnswer());
+            this.questionAnswer.setVisible(false);
+            this.exposeAnswerButton.setVisible(true);
+        }
+    }
+
     public static void main(String[] args) {
         JFrame frame = new CardGUI("MemorizeIt");
         frame.setVisible(true);
-        DBUtils db = new DBUtils();
-        try {
-            ResultSet rs = db.displayQuestions();
-            while(rs.next()) {
-                System.out.println(rs.getString("question"));
-            }
-        } catch (SQLException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }
     }
 }

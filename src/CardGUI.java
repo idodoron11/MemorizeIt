@@ -13,7 +13,7 @@ public class CardGUI extends JFrame {
     private JLabel questionDescription;
     private JLabel questionAnswer;
     private JButton settingsButton;
-    private final CardsManager queue = new CardsManager();
+    final CardsManager queue = new CardsManager();
     private CardsManager.Card currentCard;
 
     public CardGUI(String title){
@@ -46,7 +46,7 @@ public class CardGUI extends JFrame {
         settingsButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                JFrame settingsFrame = new SettingsGUI("Settings");
+                JFrame settingsFrame = new Settings("Settings", CardGUI.this);
                 settingsFrame.setVisible(true);
             }
         });
@@ -78,10 +78,5 @@ public class CardGUI extends JFrame {
             this.questionAnswer.setVisible(false);
             this.exposeAnswerButton.setVisible(true);
         }
-    }
-
-    public static void main(String[] args) {
-        JFrame frame = new CardGUI("MemorizeIt");
-        frame.setVisible(true);
     }
 }

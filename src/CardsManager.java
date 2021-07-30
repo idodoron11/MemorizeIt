@@ -1,4 +1,5 @@
 import java.sql.*;
+import java.util.Set;
 
 public class CardsManager {
     private Connection con;
@@ -50,8 +51,7 @@ public class CardsManager {
             if (con == null) {
                 openConnection();
             }
-            Statement state = con.createStatement();
-            cardsQueue = state.executeQuery("""
+            PreparedStatement ps = con.prepareStatement("""
                 SELECT
                     cards.id as "id",
                     cards.question as "question",
@@ -62,11 +62,13 @@ public class CardsManager {
                     cards.successfulInteractions / cards.totalInteractions as "successRate"
                 FROM cards
                 WHERE
-                    lastInteraction < strftime('%s', 'now') - 60 * 60
+                    lastInteraction < strftime('%s', 'now') - 60 * ?
                 ORDER BY
                     successRate ASC,
                     lastInteraction ASC
                 """);
+            ps.setString(1, Settings.config.getProperty("waitAfterInteraction"));
+            cardsQueue = ps.executeQuery();
         } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
         }

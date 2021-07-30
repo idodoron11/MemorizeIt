@@ -78,4 +78,40 @@ class CardsManagerTest {
             e.printStackTrace();
         }
     }
+
+    @Test
+    void cardInteractions() {
+        final CardsManager queue = new CardsManager();
+        CardsManager.Card current;
+        double successRate;
+
+        int i = 0;
+        while ((current = queue.getNextCard()) != null) {
+            ++i;
+            switch (i % 3) {
+                case 0: {
+                    successRate = current.getSuccessRate();
+                    for (int j = 0; j < i; ++j) {
+                        current.interact(1);
+                    }
+                    assertTrue(Double.isNaN(successRate) || successRate <= current.getSuccessRate());
+                }
+                case 1: {
+                    successRate = current.getSuccessRate();
+                    for (int j = 0; j < i; ++j) {
+                        current.interact(0.5);
+                    }
+                    assertTrue(Double.isNaN(successRate) ||
+                            Math.abs(successRate - 0.5) >= Math.abs(current.getSuccessRate() - 0.5));
+                }
+                case 2: {
+                    successRate = current.getSuccessRate();
+                    for (int j = 0; j < i; ++j) {
+                        current.interact(0);
+                    }
+                    assertTrue(Double.isNaN(successRate) ||successRate >= current.getSuccessRate());
+                }
+            }
+        }
+    }
 }

@@ -1,5 +1,4 @@
 import javax.swing.*;
-import java.awt.event.*;
 
 public class CardGUI extends JFrame {
     private JPanel mainPanel;
@@ -11,8 +10,8 @@ public class CardGUI extends JFrame {
     private JButton exposeAnswerButton;
     private JLabel questionDescription;
     private JLabel questionAnswer;
-    private final CardsQueue queue = new CardsQueue();
-    private Card currentCard;
+    private final CardsManager queue = new CardsManager();
+    private CardsManager.Card currentCard;
 
     public CardGUI(String title){
         super(title);
@@ -37,7 +36,7 @@ public class CardGUI extends JFrame {
         });
         badButton.addActionListener(e -> {
             if (currentCard != null) {
-                currentCard.interact();
+                currentCard.interact(0);
             }
             updateQuestion();
         });

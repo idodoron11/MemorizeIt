@@ -77,6 +77,9 @@ public class CardGUI extends JFrame {
             this.questionAnswer.setText("<html><div style=\"width: 250px;\">"+currentCard.getAnswer()+"</div></html>");
             this.questionAnswer.setVisible(false);
             this.exposeAnswerButton.setVisible(true);
+            this.wellButton.setVisible(true);
+            this.badButton.setVisible(true);
+            this.vagueButton.setVisible(true);
         }
     }
 }

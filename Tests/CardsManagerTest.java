@@ -1,5 +1,7 @@
 import org.junit.jupiter.api.Test;
 
+import java.sql.SQLException;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class CardsManagerTest {
@@ -30,6 +32,11 @@ class CardsManagerTest {
             }
         }
         assertTrue(count >= 3 && count % 3 == 0);
+        try {
+            queue.closeConnection();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     @Test
@@ -39,9 +46,13 @@ class CardsManagerTest {
         while ((current = queue.getNextCard()) != null) {
             if (prev != null) {
                 assertTrue(prev.compareTo(current) <= 0);
-                assertTrue(prev.getSuccessRate() <= current.getSuccessRate());
             }
             prev = current;
+        }
+        try {
+            queue.closeConnection();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
@@ -61,23 +72,10 @@ class CardsManagerTest {
             assertEquals(String.format("Question %d.", i), current.getQuestion());
             assertEquals(String.format("Answer %d.", i), current.getAnswer());
         }
-    }
-
-    @Test
-    void interactWith() {
-        final CardsManager queue = new CardsManager();
-        CardsManager.Card current;
-        int i = 0;
-        while ((current = queue.getNextCard()) != null) {
-            ++i;
-            current.updateCard(String.format("Question %d.", i), String.format("Answer %d.", i));
-        }
-        queue.refreshQueue();
-        i = 0;
-        while ((current = queue.getNextCard()) != null) {
-            ++i;
-            assertEquals(String.format("Question %d.", i), current.getQuestion());
-            assertEquals(String.format("Answer %d.", i), current.getAnswer());
+        try {
+            queue.closeConnection();
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 }

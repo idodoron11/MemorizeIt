@@ -9,22 +9,28 @@ public class CardsManager {
         refreshQueue();
     }
 
-    private void getConnection() throws ClassNotFoundException, SQLException {
+    private void openConnection() throws ClassNotFoundException, SQLException {
         Class.forName("org.sqlite.JDBC");
         con = DriverManager.getConnection("jdbc:sqlite:data.db");
         initialise();
     }
 
+    public void closeConnection() throws SQLException {
+        if (con != null) {
+            con.close();
+            con = null;
+        }
+    }
+
     private void initialise() throws SQLException {
         if (!hasData) {
             hasData = true;
-        }
-        Statement state = con.createStatement();
-        ResultSet res = state.executeQuery("SELECT * FROM sqlite_master WHERE type = 'table' AND name = 'cards';");
-        if (!res.next()) {
-            System.out.println("Building the questions table with pre-populated values");
-            Statement state2 = con.createStatement();
-            state2.execute("""
+            Statement state = con.createStatement();
+            ResultSet res = state.executeQuery("SELECT * FROM sqlite_master WHERE type = 'table' AND name = 'cards';");
+            if (!res.next()) {
+                System.out.println("Building the questions table with pre-populated values");
+                Statement state2 = con.createStatement();
+                state2.execute("""
                 CREATE TABLE "cards" (
                  	"id"	INTEGER NOT NULL UNIQUE,
                  	"question"	varchar(60) DEFAULT "" NOT NULL,
@@ -35,13 +41,14 @@ public class CardsManager {
                  	PRIMARY KEY("id")
                  )
                 """);
+            }
         }
     }
 
     public void refreshQueue() {
         try {
             if (con == null) {
-                getConnection();
+                openConnection();
             }
             Statement state = con.createStatement();
             cardsQueue = state.executeQuery("""
@@ -58,7 +65,7 @@ public class CardsManager {
                     lastInteraction < strftime('%s', 'now') - 60 * 60
                 ORDER BY
                     successRate ASC,
-                    lastInteraction DESC
+                    lastInteraction ASC
                 """);
         } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
@@ -79,6 +86,9 @@ public class CardsManager {
     public int insertNewCard(String question, String answer) {
         int id = -1;
         try {
+            if (con == null) {
+                openConnection();
+            }
             PreparedStatement ps = con.prepareStatement(
                     "INSERT INTO cards (question, answer) VALUES(?, ?);",
                     Statement.RETURN_GENERATED_KEYS);
@@ -89,7 +99,7 @@ public class CardsManager {
             if (rs.next()) {
                 id = rs.getInt(1);
             }
-        } catch (SQLException e) {
+        } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
         }
         return id;
@@ -100,8 +110,8 @@ public class CardsManager {
         private String question;
         private String answer;
         private final long lastInteraction;
-        private final double successfulInteractions;
-        private final int totalInteractions;
+        private double successfulInteractions;
+        private int totalInteractions;
 
         private Card(int ID, String question, String answer, long lastInteraction, double successfulInteractions, int totalInteractions) {
             this.ID = ID;
@@ -133,6 +143,18 @@ public class CardsManager {
             return ID;
         }
 
+        public long getLastInteraction() {
+            return lastInteraction;
+        }
+
+        public double getSuccessfulInteractions() {
+            return successfulInteractions;
+        }
+
+        public int getTotalInteractions() {
+            return totalInteractions;
+        }
+
         public String getAnswer() {
             return answer;
         }
@@ -140,7 +162,7 @@ public class CardsManager {
         public void interact(double interactionResult) {
             try {
                 if (con == null) {
-                    getConnection();
+                    openConnection();
                 }
                 PreparedStatement ps = con.prepareStatement("""
                     UPDATE cards
@@ -153,6 +175,8 @@ public class CardsManager {
                 ps.setDouble(1, interactionResult);
                 ps.setInt(2, this.getID());
                 ps.execute();
+                ++this.totalInteractions;
+                this.successfulInteractions += interactionResult;
                 System.out.println("Interaction completed.");
             } catch (SQLException | ClassNotFoundException e) {
                 e.printStackTrace();
@@ -163,6 +187,9 @@ public class CardsManager {
             this.question = question;
             this.answer = answer;
             try {
+                if (con == null) {
+                    openConnection();
+                }
                 PreparedStatement ps = con.prepareStatement("""
                     UPDATE cards
                     SET
@@ -175,7 +202,7 @@ public class CardsManager {
                 ps.setInt(3, this.ID);
                 ps.executeUpdate();
                 System.out.println("Update completed.");
-            } catch (SQLException e) {
+            } catch (SQLException | ClassNotFoundException e) {
                 e.printStackTrace();
             }
         }

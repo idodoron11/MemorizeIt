@@ -1,4 +1,6 @@
 import javax.swing.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 public class CardGUI extends JFrame {
     private JPanel mainPanel;
@@ -10,6 +12,7 @@ public class CardGUI extends JFrame {
     private JButton exposeAnswerButton;
     private JLabel questionDescription;
     private JLabel questionAnswer;
+    private JButton settingsButton;
     private final CardsManager queue = new CardsManager();
     private CardsManager.Card currentCard;
 
@@ -39,6 +42,13 @@ public class CardGUI extends JFrame {
                 currentCard.interact(0);
             }
             updateQuestion();
+        });
+        settingsButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JFrame settingsFrame = new SettingsGUI("Settings");
+                settingsFrame.setVisible(true);
+            }
         });
     }
 

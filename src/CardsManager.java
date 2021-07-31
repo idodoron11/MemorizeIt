@@ -53,23 +53,23 @@ public class CardsManager {
             }
             PreparedStatement ps = con.prepareStatement("""
                         SELECT
-                                            cards.id as "id",
-                                            cards.question as "question",
-                                            cards.answer as "answer",
-                                            cards.lastInteraction as "lastInteraction",
-                                            cards.successfulInteractions as "successfulInteractions",
-                                            cards.totalInteractions as "totalInteractions",
-                                            cards.successfulInteractions / cards.totalInteractions as "successRate"
-                                        FROM cards
-                                        WHERE (
-                                                lastInteraction < strftime('%s', 'now') - 60 * ? AND
-                                                successRate <= 0.01 * ?
-                                            ) OR (
-                                                lastInteraction < strftime('%s', 'now') - 24 * 60 * ?
-                                            )
-                                        ORDER BY
-                                            successRate ASC,
-                                            lastInteraction ASC
+                            cards.id as "id",
+                            cards.question as "question",
+                            cards.answer as "answer",
+                            cards.lastInteraction as "lastInteraction",
+                            cards.successfulInteractions as "successfulInteractions",
+                            cards.totalInteractions as "totalInteractions",
+                            cards.successfulInteractions / cards.totalInteractions as "successRate"
+                        FROM cards
+                        WHERE (
+                                lastInteraction < strftime('%s', 'now') - 60 * ? AND
+                                successRate <= 0.01 * ?
+                            ) OR (
+                                lastInteraction < strftime('%s', 'now') - 24 * 60 * ?
+                            )
+                        ORDER BY
+                            successRate ASC,
+                            lastInteraction ASC
                         """);
             ps.setString(1, Settings.config.getProperty("waitAfterInteraction"));
             ps.setString(2, Settings.config.getProperty("successRateThreshold"));

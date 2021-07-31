@@ -1,4 +1,5 @@
 import javax.swing.*;
+import java.awt.*;
 import java.io.*;
 import java.util.Properties;
 
@@ -8,8 +9,9 @@ public class Settings extends JFrame{
     private JPanel settingsDashboard;
     private JButton saveSettingsButton;
     private JButton cancelButton;
-    private JLabel waitAfterInteractionLabel;
-    private JFormattedTextField waitAfterInteractionInput;
+    private JSpinner waitAfterInteractionInput;
+    private JSpinner maxWaitAfterInteractionInput;
+    private JSpinner successRateThresholdInput;
     private CardGUI parent;
 
     public Settings(String title, CardGUI parent) {
@@ -18,18 +20,26 @@ public class Settings extends JFrame{
         this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         this.setContentPane(mainPanel);
         this.pack();
+        waitAfterInteractionInput.setModel(new SpinnerNumberModel(0, 0, null, 1));
+        waitAfterInteractionInput.setSize(28, 20);
+        waitAfterInteractionInput.setMinimumSize(new Dimension(-1, -1));
+        maxWaitAfterInteractionInput.setModel(new SpinnerNumberModel(1, 1, null, 1));
+        successRateThresholdInput.setModel(new SpinnerNumberModel(100.0, 0.0, 100.0, 0.5));
 
         // Load settings to form
-        waitAfterInteractionInput.setText(config.getProperty("waitAfterInteraction"));
+        waitAfterInteractionInput.setValue(Integer.parseInt(config.getProperty("waitAfterInteraction")));
+        maxWaitAfterInteractionInput.setValue(Integer.parseInt(config.getProperty("maxWaitAfterInteraction")));
+        successRateThresholdInput.setValue(Double.parseDouble(config.getProperty("successRateThreshold")));
 
         // Listeners
         saveSettingsButton.addActionListener(e -> {
             try {
-                int waitAfterInteractionValue = Integer.parseInt(waitAfterInteractionInput.getText());
-                if (waitAfterInteractionValue < 0) {
-                    waitAfterInteractionValue *= -1;
-                }
+                int waitAfterInteractionValue = (int)waitAfterInteractionInput.getValue();
+                int maxWaitAfterInteractionValue = (int)maxWaitAfterInteractionInput.getValue();
+                double successRateThresholdValue = (double)successRateThresholdInput.getValue();
                 config.setProperty("waitAfterInteraction", String.valueOf(waitAfterInteractionValue));
+                config.setProperty("maxWaitAfterInteraction", String.valueOf(maxWaitAfterInteractionValue));
+                config.setProperty("successRateThreshold", String.valueOf(successRateThresholdValue));
                 saveConfiguration();
             } catch (IOException | NumberFormatException exp) {
                 exp.printStackTrace();

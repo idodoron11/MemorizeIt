@@ -52,22 +52,28 @@ public class CardsManager {
                 openConnection();
             }
             PreparedStatement ps = con.prepareStatement("""
-                SELECT
-                    cards.id as "id",
-                    cards.question as "question",
-                    cards.answer as "answer",
-                    cards.lastInteraction as "lastInteraction",
-                    cards.successfulInteractions as "successfulInteractions",
-                    cards.totalInteractions as "totalInteractions",
-                    cards.successfulInteractions / cards.totalInteractions as "successRate"
-                FROM cards
-                WHERE
-                    lastInteraction < strftime('%s', 'now') - 60 * ?
-                ORDER BY
-                    successRate ASC,
-                    lastInteraction ASC
-                """);
+                        SELECT
+                                            cards.id as "id",
+                                            cards.question as "question",
+                                            cards.answer as "answer",
+                                            cards.lastInteraction as "lastInteraction",
+                                            cards.successfulInteractions as "successfulInteractions",
+                                            cards.totalInteractions as "totalInteractions",
+                                            cards.successfulInteractions / cards.totalInteractions as "successRate"
+                                        FROM cards
+                                        WHERE (
+                                                lastInteraction < strftime('%s', 'now') - 60 * ? AND
+                                                successRate <= 0.01 * ?
+                                            ) OR (
+                                                lastInteraction < strftime('%s', 'now') - 24 * 60 * ?
+                                            )
+                                        ORDER BY
+                                            successRate ASC,
+                                            lastInteraction ASC
+                        """);
             ps.setString(1, Settings.config.getProperty("waitAfterInteraction"));
+            ps.setString(2, Settings.config.getProperty("successRateThreshold"));
+            ps.setString(3, Settings.config.getProperty("maxWaitAfterInteraction"));
             cardsQueue = ps.executeQuery();
         } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();

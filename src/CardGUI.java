@@ -65,7 +65,7 @@ public class CardGUI extends JFrame {
     public void updateQuestion() {
         currentCard = queue.getNextCard();
         if (currentCard == null) {
-            this.questionDescription.setText("There are no more questions for now. Please come back later.");
+            this.questionDescription.setText("<html><div style=\"width: 300px;\"><h2>There are no more questions for now. Please come back later.</h2></div></html>");
             this.questionAnswer.setText("");
             this.questionAnswer.setVisible(false);
             this.wellButton.setVisible(false);
@@ -73,8 +73,8 @@ public class CardGUI extends JFrame {
             this.vagueButton.setVisible(false);
             this.exposeAnswerButton.setVisible(false);
         } else {
-            this.questionDescription.setText("<html><h1>"+currentCard.getQuestion()+"</h1></html>");
-            this.questionAnswer.setText("<html><div style=\"width: 250px;\">"+currentCard.getAnswer()+"</div></html>");
+            this.questionDescription.setText("<html><div style=\"width: 300px;\"><h1>"+currentCard.getQuestion()+"</h1></div></html>");
+            this.questionAnswer.setText("<html><div style=\"width: 300px;\">"+currentCard.getAnswer()+"</div></html>");
             this.questionAnswer.setVisible(false);
             this.exposeAnswerButton.setVisible(true);
             this.wellButton.setVisible(true);

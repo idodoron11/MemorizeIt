@@ -57,6 +57,12 @@ public class CardGUI extends JFrame {
         fileMenu.add(addNewCardMenuItem);
         JMenuItem removeCurrentCardMenuItem = new JMenuItem("Remove current card");
         fileMenu.add(removeCurrentCardMenuItem);
+        JMenuItem clearInteractionsMenuItem = new JMenuItem("Reset interactions history");
+        fileMenu.add(clearInteractionsMenuItem);
+        clearInteractionsMenuItem.addActionListener(e -> {
+            JDialog clearInteractionsFrame = new ClearInteractions(CardGUI.this);
+            clearInteractionsFrame.setVisible(true);
+        });
         JMenuItem settingsMenuItem = new JMenuItem("Settings");
         fileMenu.add(settingsMenuItem);
         settingsMenuItem.addActionListener(e -> {

@@ -145,6 +145,39 @@ public class CardsManager {
         return id;
     }
 
+    public void resetInteractions(long from, long until) {
+        try {
+            if (con == null) {
+                openConnection();
+            }
+            PreparedStatement ps = con.prepareStatement("""
+                    DELETE FROM interactions
+                    WHERE
+                        interactions.time <= ? AND
+                        interactions.time >= ?
+                    """);
+            ps.setLong(1, until);
+            ps.setLong(2, from);
+            ps.execute();
+            System.out.println("Reset completed.");
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void resetAllInteractions() {
+        try {
+            if (con == null) {
+                openConnection();
+            }
+            PreparedStatement ps = con.prepareStatement("DELETE FROM interactions");
+            ps.execute();
+            System.out.println("Reset completed.");
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
     public class Card implements Comparable<Card> {
         private final int ID;
         private String question;

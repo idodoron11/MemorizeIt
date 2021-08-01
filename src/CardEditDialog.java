@@ -3,7 +3,7 @@ import java.awt.*;
 
 public class CardEditDialog extends JDialog {
     private JTextField questionInput;
-    private JTextField answerInput;
+    private JTextArea answerInput;
     private JButton commitButton;
     private JButton cancelButton;
     private JPanel mainPanel;
@@ -26,6 +26,7 @@ public class CardEditDialog extends JDialog {
         commitButton.setText("Update Card");
         questionInput.setText(card.getQuestion());
         answerInput.setText(card.getAnswer());
+        answerInput.setFont(questionInput.getFont());
     }
 
     public CardEditDialog(Frame owner) {

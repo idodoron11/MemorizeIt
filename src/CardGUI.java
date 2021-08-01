@@ -51,21 +51,31 @@ public class CardGUI extends JFrame {
         JMenu fileMenu = new JMenu("File");
         JMenuItem clearInteractionsMenuItem = new JMenuItem("Reset interactions history");
         fileMenu.add(clearInteractionsMenuItem);
-        clearInteractionsMenuItem.addActionListener(e -> {
-            JDialog clearInteractionsFrame = new ClearInteractionsDialog(CardGUI.this);
-            clearInteractionsFrame.setVisible(true);
-        });
         JMenuItem settingsMenuItem = new JMenuItem("Settings");
         fileMenu.add(settingsMenuItem);
-        settingsMenuItem.addActionListener(e -> {
-            JDialog settingsFrame = new Settings("Settings", CardGUI.this);
-            settingsFrame.setVisible(true);
-        });
 
         // Create edit sub-menu
         JMenu editMenu = new JMenu("Edit");
         JMenuItem addNewCardMenuItem = new JMenuItem("Add new card");
         editMenu.add(addNewCardMenuItem);
+        JMenuItem editCurrentCard = new JMenuItem("Edit current card");
+        editMenu.add(editCurrentCard);
+        JMenuItem removeCurrentCardMenuItem = new JMenuItem("Remove current card");
+        editMenu.add(removeCurrentCardMenuItem);
+
+        // Add sub-menus to top menu
+        topMenu.add(fileMenu);
+        topMenu.add(editMenu);
+
+        // Define actionListeners for every menu-item
+        clearInteractionsMenuItem.addActionListener(e -> {
+            JDialog clearInteractionsFrame = new ClearInteractionsDialog(CardGUI.this);
+            clearInteractionsFrame.setVisible(true);
+        });
+        settingsMenuItem.addActionListener(e -> {
+            JDialog settingsFrame = new Settings("Settings", CardGUI.this);
+            settingsFrame.setVisible(true);
+        });
         addNewCardMenuItem.addActionListener(e -> {
             String[] card = new CardEditDialog(CardGUI.this).showDialog();
             if (card != null) {
@@ -74,8 +84,6 @@ public class CardGUI extends JFrame {
                 this.showNextCard();
             }
         });
-        JMenuItem editCurrentCard = new JMenuItem("Edit current card");
-        editMenu.add(editCurrentCard);
         editCurrentCard.addActionListener(e -> {
             String[] card = new CardEditDialog(CardGUI.this, this.currentCard).showDialog();
             if (card != null) {
@@ -83,8 +91,6 @@ public class CardGUI extends JFrame {
                 this.showCard(currentCard);
             }
         });
-        JMenuItem removeCurrentCardMenuItem = new JMenuItem("Remove current card");
-        editMenu.add(removeCurrentCardMenuItem);
         removeCurrentCardMenuItem.addActionListener( e -> {
             int result = JOptionPane.showConfirmDialog(CardGUI.this,
                     "Are you sure you want to delete the current card?",
@@ -96,10 +102,6 @@ public class CardGUI extends JFrame {
                 this.showNextCard();
             }
         });
-
-        // Add sub-menus to top menu
-        topMenu.add(fileMenu);
-        topMenu.add(editMenu);
     }
 
     public void exposeAnswer() {

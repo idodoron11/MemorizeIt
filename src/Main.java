@@ -10,12 +10,18 @@ public class Main {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        JFrame frame = new CardGUI("MemorizeIt");
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            /*for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }*/
         } catch (Exception e) {
             e.printStackTrace();
         }
+        JFrame frame = new CardGUI("MemorizeIt");
         frame.setVisible(true);
     }
 }

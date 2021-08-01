@@ -16,6 +16,7 @@ public class Settings extends JDialog{
 
     public Settings(String title, CardGUI parent) {
         super(parent);
+        this.setModal(true);
         this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         this.setContentPane(mainPanel);
         this.pack();

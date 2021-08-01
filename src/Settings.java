@@ -3,7 +3,7 @@ import java.awt.*;
 import java.io.*;
 import java.util.Properties;
 
-public class Settings extends JFrame{
+public class Settings extends JDialog{
     private JPanel mainPanel;
     private JPanel settingsLayout;
     private JPanel settingsDashboard;
@@ -13,11 +13,9 @@ public class Settings extends JFrame{
     private JSpinner maxWaitAfterInteractionInput;
     private JSpinner successRateThresholdInput;
     private JSpinner interactionsFocusInput;
-    private CardGUI parent;
 
     public Settings(String title, CardGUI parent) {
-        super(title);
-        this.parent = parent;
+        super(parent);
         this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
         this.setContentPane(mainPanel);
         this.pack();
@@ -79,6 +77,7 @@ public class Settings extends JFrame{
         Writer fw = new FileWriter(configFile);
         config.store(fw, "Saved Settings");
         fw.close();
+        CardGUI parent = (CardGUI) this.getOwner();
         parent.queue.refreshQueue();
         parent.updateQuestion();
     }

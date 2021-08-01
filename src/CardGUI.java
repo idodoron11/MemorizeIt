@@ -60,7 +60,7 @@ public class CardGUI extends JFrame {
         JMenuItem settingsMenuItem = new JMenuItem("Settings");
         fileMenu.add(settingsMenuItem);
         settingsMenuItem.addActionListener(e -> {
-            JFrame settingsFrame = new Settings("Settings", CardGUI.this);
+            JDialog settingsFrame = new Settings("Settings", CardGUI.this);
             settingsFrame.setVisible(true);
         });
 

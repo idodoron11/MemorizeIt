@@ -21,7 +21,6 @@ public class CardGUI extends JFrame {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setContentPane(mainPanel);
         this.pack();
-        loadMenuBar();
         this.hideAnswer();
         this.currentCard = null;
         updateQuestion();
@@ -44,16 +43,6 @@ public class CardGUI extends JFrame {
             }
             updateQuestion();
         });
-    }
-
-    private void loadMenuBar() {
-        JMenuBar topMenu = new JMenuBar();
-        this.setJMenuBar(topMenu);
-
-        // Create file sub menu
-        JMenu fileMenu = new JMenu("FIle");
-        JMenuItem settingsButton = new JMenuItem("Settings");
-        fileMenu.add(settingsButton);
         settingsButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -61,9 +50,6 @@ public class CardGUI extends JFrame {
                 settingsFrame.setVisible(true);
             }
         });
-
-        // Add sub-menus to top menu
-        topMenu.add(fileMenu);
     }
 
     public void exposeAnswer() {

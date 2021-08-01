@@ -85,6 +85,17 @@ public class CardGUI extends JFrame {
         });
         JMenuItem removeCurrentCardMenuItem = new JMenuItem("Remove current card");
         editMenu.add(removeCurrentCardMenuItem);
+        removeCurrentCardMenuItem.addActionListener( e -> {
+            int result = JOptionPane.showConfirmDialog(CardGUI.this,
+                    "Are you sure you want to delete the current card?",
+                    "Confirmation Dialog",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE);
+            if (result == JOptionPane.YES_NO_OPTION) {
+                this.currentCard.deleteCard();
+                this.showNextCard();
+            }
+        });
 
         // Add sub-menus to top menu
         topMenu.add(fileMenu);

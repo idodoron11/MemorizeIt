@@ -275,6 +275,26 @@ public class CardsManager {
             }
         }
 
+        public void deleteCard() {
+            try {
+                if (con == null) {
+                    openConnection();
+                }
+                con.setAutoCommit(false);
+                PreparedStatement ps1 = con.prepareStatement("DELETE FROM cards WHERE cards.id = ?");
+                ps1.setInt(1, this.ID);
+                ps1.executeUpdate();
+                PreparedStatement ps2 = con.prepareStatement("DELETE FROM interactions WHERE interactions.cardID = ?");
+                ps2.setInt(1, this.ID);
+                ps2.executeUpdate();
+                con.commit();
+                con.setAutoCommit(true);
+                System.out.println("Update completed.");
+            } catch (SQLException | ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+
         @Override
         public int compareTo(Card o) {
             if (this.getSuccessRate() < o.getSuccessRate()) {

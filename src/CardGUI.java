@@ -1,8 +1,4 @@
 import javax.swing.*;
-import javax.swing.event.MenuEvent;
-import javax.swing.event.MenuListener;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
 public class CardGUI extends JFrame {
     private JPanel mainPanel;
@@ -25,25 +21,25 @@ public class CardGUI extends JFrame {
         loadMenuBar();
         this.hideAnswer();
         this.currentCard = null;
-        updateQuestion();
+        showNextCard();
         exposeAnswerButton.addActionListener(e -> exposeAnswer());
         wellButton.addActionListener(e -> {
             if (currentCard != null) {
                 currentCard.interact(1);
             }
-            updateQuestion();
+            showNextCard();
         });
         vagueButton.addActionListener(e -> {
             if (currentCard != null) {
                 currentCard.interact(0.5);
             }
-            updateQuestion();
+            showNextCard();
         });
         badButton.addActionListener(e -> {
             if (currentCard != null) {
                 currentCard.interact(0);
             }
-            updateQuestion();
+            showNextCard();
         });
     }
 
@@ -51,16 +47,12 @@ public class CardGUI extends JFrame {
         JMenuBar topMenu = new JMenuBar();
         this.setJMenuBar(topMenu);
 
-        // Create file sub menu
-        JMenu fileMenu = new JMenu("FIle");
-        JMenuItem addNewCardMenuItem = new JMenuItem("Add new card");
-        fileMenu.add(addNewCardMenuItem);
-        JMenuItem removeCurrentCardMenuItem = new JMenuItem("Remove current card");
-        fileMenu.add(removeCurrentCardMenuItem);
+        // Create file sub-menu
+        JMenu fileMenu = new JMenu("File");
         JMenuItem clearInteractionsMenuItem = new JMenuItem("Reset interactions history");
         fileMenu.add(clearInteractionsMenuItem);
         clearInteractionsMenuItem.addActionListener(e -> {
-            JDialog clearInteractionsFrame = new ClearInteractions(CardGUI.this);
+            JDialog clearInteractionsFrame = new ClearInteractionsDialog(CardGUI.this);
             clearInteractionsFrame.setVisible(true);
         });
         JMenuItem settingsMenuItem = new JMenuItem("Settings");
@@ -70,8 +62,33 @@ public class CardGUI extends JFrame {
             settingsFrame.setVisible(true);
         });
 
+        // Create edit sub-menu
+        JMenu editMenu = new JMenu("Edit");
+        JMenuItem addNewCardMenuItem = new JMenuItem("Add new card");
+        editMenu.add(addNewCardMenuItem);
+        addNewCardMenuItem.addActionListener(e -> {
+            String[] card = new CardEditDialog(CardGUI.this).showDialog();
+            if (card != null) {
+                queue.insertNewCard(card[0], card[1]);
+                queue.refreshQueue();
+                this.showNextCard();
+            }
+        });
+        JMenuItem editCurrentCard = new JMenuItem("Edit current card");
+        editMenu.add(editCurrentCard);
+        editCurrentCard.addActionListener(e -> {
+            String[] card = new CardEditDialog(CardGUI.this, this.currentCard).showDialog();
+            if (card != null) {
+                this.currentCard.updateCard(card[0], card[1]);
+                this.showCard(currentCard);
+            }
+        });
+        JMenuItem removeCurrentCardMenuItem = new JMenuItem("Remove current card");
+        editMenu.add(removeCurrentCardMenuItem);
+
         // Add sub-menus to top menu
         topMenu.add(fileMenu);
+        topMenu.add(editMenu);
     }
 
     public void exposeAnswer() {
@@ -84,9 +101,13 @@ public class CardGUI extends JFrame {
         this.questionAnswer.setVisible(false);
     }
 
-    public void updateQuestion() {
+    public void showNextCard() {
         currentCard = queue.getNextCard();
-        if (currentCard == null) {
+        showCard(currentCard);
+    }
+
+    public void showCard(CardsManager.Card card) {
+        if (card == null) {
             this.questionDescription.setText("<html><div style=\"width: 300px;\"><h2>There are no more questions for now. Please come back later.</h2></div></html>");
             this.questionAnswer.setText("");
             this.questionAnswer.setVisible(false);
@@ -95,8 +116,8 @@ public class CardGUI extends JFrame {
             this.vagueButton.setVisible(false);
             this.exposeAnswerButton.setVisible(false);
         } else {
-            this.questionDescription.setText("<html><div style=\"width: 300px;\"><h1>"+currentCard.getQuestion()+"</h1></div></html>");
-            this.questionAnswer.setText("<html><div style=\"width: 300px;\">"+currentCard.getAnswer()+"</div></html>");
+            this.questionDescription.setText("<html><div style=\"width: 300px;\"><h1>"+card.getQuestion()+"</h1></div></html>");
+            this.questionAnswer.setText("<html><div style=\"width: 300px;\">"+card.getAnswer()+"</div></html>");
             this.questionAnswer.setVisible(false);
             this.exposeAnswerButton.setVisible(true);
             this.wellButton.setVisible(true);

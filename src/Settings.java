@@ -80,6 +80,6 @@ public class Settings extends JDialog{
         fw.close();
         CardGUI parent = (CardGUI) this.getOwner();
         parent.queue.refreshQueue();
-        parent.updateQuestion();
+        parent.showNextCard();
     }
 }

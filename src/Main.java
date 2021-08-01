@@ -11,6 +11,11 @@ public class Main {
             e.printStackTrace();
         }
         JFrame frame = new CardGUI("MemorizeIt");
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         frame.setVisible(true);
     }
 }

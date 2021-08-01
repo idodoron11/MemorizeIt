@@ -29,18 +29,30 @@ public class CardsManager {
             Statement state = con.createStatement();
             ResultSet res = state.executeQuery("SELECT * FROM sqlite_master WHERE type = 'table' AND name = 'cards';");
             if (!res.next()) {
-                System.out.println("Building the questions table with pre-populated values");
+                System.out.println("Creating cards table.");
                 Statement state2 = con.createStatement();
                 state2.execute("""
                 CREATE TABLE "cards" (
-                 	"id"	INTEGER NOT NULL UNIQUE,
-                 	"question"	varchar(60) DEFAULT "" NOT NULL,
-                 	"answer"	varchar(60) DEFAULT "" NOT NULL,
-                 	"lastInteraction"	NUMERIC DEFAULT 0 NOT NULL,
-                 	"successfulInteractions"	REAL DEFAULT 0 NOT NULL,
-                 	"totalInteractions"	INTEGER DEFAULT 0 NOT NULL,
-                 	PRIMARY KEY("id")
-                 )
+                	"id"	INTEGER NOT NULL UNIQUE,
+                	"question"	varchar(60) NOT NULL,
+                	"answer"	varchar(60) NOT NULL,
+                	PRIMARY KEY("id")
+                );
+                """);
+            }
+
+            res = state.executeQuery("SELECT * FROM sqlite_master WHERE type = 'table' AND name = 'interactions';");
+            if (!res.next()) {
+                System.out.println("Creating interactions table.");
+                Statement state2 = con.createStatement();
+                state2.execute("""
+                CREATE TABLE "interactions" (
+                	"id"	INTEGER NOT NULL UNIQUE,
+                	"cardID"	INTEGER NOT NULL,
+                	"result"	NUMERIC NOT NULL DEFAULT 0,
+                	"time"	NUMERIC NOT NULL DEFAULT 0,
+                	PRIMARY KEY("id")
+                );
                 """);
             }
         }
@@ -53,27 +65,45 @@ public class CardsManager {
             }
             PreparedStatement ps = con.prepareStatement("""
                         SELECT
-                            cards.id as "id",
-                            cards.question as "question",
-                            cards.answer as "answer",
-                            cards.lastInteraction as "lastInteraction",
-                            cards.successfulInteractions as "successfulInteractions",
-                            cards.totalInteractions as "totalInteractions",
-                            cards.successfulInteractions / cards.totalInteractions as "successRate"
-                        FROM cards
+                        	c.id as id,
+                        	c.question as question,
+                        	c.answer as answer,
+                        	i.tmpLastInteraction as lastInteraction,
+                        	i.tmpSuccessfulInteractions as successfulInteractions,
+                        	i.tmpTotalInteractions as totalInteractions,
+                        	i.tmpSuccessRate as successRate
+                        FROM cards c
+                        LEFT JOIN (
+                        	SELECT
+                        		tmp.cardID as tmpCardID,
+                        		tmp.time as tmpLastInteraction,
+                        		COALESCE(SUM(tmp.result), 0) tmpSuccessfulInteractions,
+                        		COALESCE(COUNT(tmp.result), 0) tmpTotalInteractions,
+                        		COALESCE(AVG(tmp.result), 0) tmpSuccessRate
+                        	FROM (
+                        		SELECT *, ROW_NUMBER()
+                        		  OVER (PARTITION BY interactions.cardID
+                        		  ORDER BY interactions.time DESC) rn
+                        		  FROM interactions
+                        	) as tmp
+                        	WHERE tmp.rn <= ? OR 0 = ?
+                        	GROUP BY tmpCardID
+                        ) as i ON i.tmpCardID = c.id
                         WHERE (
-                                lastInteraction < strftime('%s', 'now') - 60 * ? AND
-                                successRate <= 0.01 * ?
-                            ) OR (
-                                lastInteraction < strftime('%s', 'now') - 24 * 60 * ?
-                            )
+                        	COALESCE(i.tmpLastInteraction, 0) < strftime('%s', 'now') - 60 * 60 * ? AND
+                        	COALESCE(i.tmpSuccessRate, 0) <= 0.01 * ?
+                        ) OR (
+                        	COALESCE(i.tmpLastInteraction, 0) < strftime('%s', 'now') - 24 * 60 * 60 * ?
+                        )
                         ORDER BY
-                            successRate ASC,
-                            lastInteraction ASC
+                        	i.tmpSuccessRate ASC,
+                        	i.tmpLastInteraction ASC
                         """);
-            ps.setString(1, Settings.config.getProperty("waitAfterInteraction"));
-            ps.setString(2, Settings.config.getProperty("successRateThreshold"));
-            ps.setString(3, Settings.config.getProperty("maxWaitAfterInteraction"));
+            ps.setInt(1, Integer.parseInt(Settings.config.getProperty("interactionsFocus")));
+            ps.setInt(2, Integer.parseInt(Settings.config.getProperty("interactionsFocus")));
+            ps.setInt(3, Integer.parseInt(Settings.config.getProperty("waitAfterInteraction")));
+            ps.setDouble(4, Double.parseDouble(Settings.config.getProperty("successRateThreshold")));
+            ps.setInt(5, Integer.parseInt(Settings.config.getProperty("maxWaitAfterInteraction")));
             cardsQueue = ps.executeQuery();
         } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
@@ -83,7 +113,9 @@ public class CardsManager {
     public Card getNextCard() {
         try {
             if (cardsQueue.next()) {
-                return new Card(cardsQueue);
+                Card result = new Card(cardsQueue);
+                System.out.println(result);
+                return result;
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -173,15 +205,10 @@ public class CardsManager {
                     openConnection();
                 }
                 PreparedStatement ps = con.prepareStatement("""
-                    UPDATE cards
-                    SET
-                    	totalInteractions = totalInteractions + 1,
-                    	successfulInteractions = successfulInteractions + ?,
-                    	lastInteraction = strftime('%s', 'now')
-                    WHERE id = ?
+                    INSERT INTO interactions (cardID, result, time) VALUES(?, ?, strftime('%s', 'now'));
                     """);
-                ps.setDouble(1, interactionResult);
-                ps.setInt(2, this.getID());
+                ps.setInt(1, this.getID());
+                ps.setDouble(2, interactionResult);
                 ps.execute();
                 ++this.totalInteractions;
                 this.successfulInteractions += interactionResult;
@@ -224,6 +251,18 @@ public class CardsManager {
             } else {
                 return Long.compare(this.lastInteraction, o.lastInteraction);
             }
+        }
+
+        @Override
+        public String toString() {
+            return "Card{" +
+                    "ID=" + ID +
+                    ", question='" + question + '\'' +
+                    ", answer='" + answer + '\'' +
+                    ", lastInteraction=" + lastInteraction +
+                    ", successfulInteractions=" + successfulInteractions +
+                    ", totalInteractions=" + totalInteractions +
+                    '}';
         }
     }
 

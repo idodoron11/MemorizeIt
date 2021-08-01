@@ -12,6 +12,7 @@ public class Settings extends JFrame{
     private JSpinner waitAfterInteractionInput;
     private JSpinner maxWaitAfterInteractionInput;
     private JSpinner successRateThresholdInput;
+    private JSpinner interactionsFocusInput;
     private CardGUI parent;
 
     public Settings(String title, CardGUI parent) {
@@ -25,11 +26,13 @@ public class Settings extends JFrame{
         waitAfterInteractionInput.setMinimumSize(new Dimension(-1, -1));
         maxWaitAfterInteractionInput.setModel(new SpinnerNumberModel(1, 1, null, 1));
         successRateThresholdInput.setModel(new SpinnerNumberModel(100.0, 0.0, 100.0, 0.5));
+        interactionsFocusInput.setModel(new SpinnerNumberModel(0, 0, null, 1));
 
         // Load settings to form
         waitAfterInteractionInput.setValue(Integer.parseInt(config.getProperty("waitAfterInteraction")));
         maxWaitAfterInteractionInput.setValue(Integer.parseInt(config.getProperty("maxWaitAfterInteraction")));
         successRateThresholdInput.setValue(Double.parseDouble(config.getProperty("successRateThreshold")));
+        interactionsFocusInput.setValue(Integer.parseInt(config.getProperty("interactionsFocus")));
 
         // Listeners
         saveSettingsButton.addActionListener(e -> {
@@ -37,9 +40,11 @@ public class Settings extends JFrame{
                 int waitAfterInteractionValue = (int)waitAfterInteractionInput.getValue();
                 int maxWaitAfterInteractionValue = (int)maxWaitAfterInteractionInput.getValue();
                 double successRateThresholdValue = (double)successRateThresholdInput.getValue();
+                int interactionsFocusValue = (int)interactionsFocusInput.getValue();
                 config.setProperty("waitAfterInteraction", String.valueOf(waitAfterInteractionValue));
                 config.setProperty("maxWaitAfterInteraction", String.valueOf(maxWaitAfterInteractionValue));
                 config.setProperty("successRateThreshold", String.valueOf(successRateThresholdValue));
+                config.setProperty("interactionsFocus", String.valueOf(interactionsFocusValue));
                 saveConfiguration();
             } catch (IOException | NumberFormatException exp) {
                 exp.printStackTrace();

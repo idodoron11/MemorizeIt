@@ -1,4 +1,6 @@
 import javax.swing.*;
+import javax.swing.event.MenuEvent;
+import javax.swing.event.MenuListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -12,7 +14,6 @@ public class CardGUI extends JFrame {
     private JButton exposeAnswerButton;
     private JLabel questionDescription;
     private JLabel questionAnswer;
-    private JButton settingsButton;
     final CardsManager queue = new CardsManager();
     private CardsManager.Card currentCard;
 
@@ -21,6 +22,7 @@ public class CardGUI extends JFrame {
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setContentPane(mainPanel);
         this.pack();
+        loadMenuBar();
         this.hideAnswer();
         this.currentCard = null;
         updateQuestion();
@@ -43,13 +45,27 @@ public class CardGUI extends JFrame {
             }
             updateQuestion();
         });
-        settingsButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                JFrame settingsFrame = new Settings("Settings", CardGUI.this);
-                settingsFrame.setVisible(true);
-            }
+    }
+
+    private void loadMenuBar() {
+        JMenuBar topMenu = new JMenuBar();
+        this.setJMenuBar(topMenu);
+
+        // Create file sub menu
+        JMenu fileMenu = new JMenu("FIle");
+        JMenuItem addNewCardMenuItem = new JMenuItem("Add new card");
+        fileMenu.add(addNewCardMenuItem);
+        JMenuItem removeCurrentCardMenuItem = new JMenuItem("Remove current card");
+        fileMenu.add(removeCurrentCardMenuItem);
+        JMenuItem settingsMenuItem = new JMenuItem("Settings");
+        fileMenu.add(settingsMenuItem);
+        settingsMenuItem.addActionListener(e -> {
+            JFrame settingsFrame = new Settings("Settings", CardGUI.this);
+            settingsFrame.setVisible(true);
         });
+
+        // Add sub-menus to top menu
+        topMenu.add(fileMenu);
     }
 
     public void exposeAnswer() {

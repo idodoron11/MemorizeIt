@@ -1,4 +1,6 @@
+import java.io.*;
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.Set;
 
 public class CardsManager {
@@ -147,6 +149,49 @@ public class CardsManager {
             e.printStackTrace();
         }
         return id;
+    }
+
+    public boolean importCards(File file) {
+        try (BufferedReader bf = new BufferedReader(new FileReader(file))) {
+            if (con == null) {
+                openConnection();
+            }
+
+            String line;
+            String[] values;
+
+            con.setAutoCommit(false);
+            PreparedStatement ps = con.prepareStatement(
+                    "INSERT INTO cards (question, answer) VALUES(?, ?);",
+                    Statement.RETURN_GENERATED_KEYS);
+            while ((line = bf.readLine()) != null) {
+                values = line.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
+                if (values.length != 2) {
+                    throw new IOException("The structure of the csv file is invalid.");
+                }
+                if (values[0].charAt(0) == '"' && values[0].charAt(values[0].length()-1) == '"') {
+                    values[0] = values[0].substring(1, values[0].length() - 1);
+                }
+                if (values[1].charAt(0) == '"' && values[1].charAt(values[1].length()-1) == '"') {
+                    values[1] = values[1].substring(1, values[1].length() - 1);
+                }
+                ps.setString(1, values[0]);
+                ps.setString(2, values[1]);
+                ps.execute();
+            }
+            con.commit();
+            con.setAutoCommit(true);
+        } catch (IOException | SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
+            try {
+                con.rollback();
+            } catch (SQLException throwable) {
+                throwable.printStackTrace();
+            }
+            return false;
+        }
+
+        return true;
     }
 
     public void resetInteractions(long from, long until) {

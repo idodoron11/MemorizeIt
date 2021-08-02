@@ -1,4 +1,6 @@
 import javax.swing.*;
+import javax.swing.filechooser.FileFilter;
+import java.io.File;
 
 public class MainGUI extends JFrame {
     private JPanel mainPanel;
@@ -14,6 +16,15 @@ public class MainGUI extends JFrame {
     private JScrollPane answerWrapper;
     final CardsManager queue = new CardsManager();
     private CardsManager.Card currentCard;
+    private JMenuBar topMenu;
+    JMenu fileMenu;
+    JMenuItem clearInteractionsMenuItem;
+    JMenuItem importCardsMenuItem;
+    JMenuItem settingsMenuItem;
+    JMenu editMenu;
+    JMenuItem addNewCardMenuItem;
+    JMenuItem editCurrentCard;
+    JMenuItem removeCurrentCardMenuItem;
 
     public MainGUI(String title){
         super(title);
@@ -46,38 +57,84 @@ public class MainGUI extends JFrame {
     }
 
     private void loadMenuBar() {
-        JMenuBar topMenu = new JMenuBar();
+        topMenu = new JMenuBar();
         this.setJMenuBar(topMenu);
-
-        // Create file sub-menu
-        JMenu fileMenu = new JMenu("File");
-        JMenuItem clearInteractionsMenuItem = new JMenuItem("Reset interactions history");
-        fileMenu.add(clearInteractionsMenuItem);
-        JMenuItem settingsMenuItem = new JMenuItem("Settings");
-        fileMenu.add(settingsMenuItem);
-
-        // Create edit sub-menu
-        JMenu editMenu = new JMenu("Edit");
-        JMenuItem addNewCardMenuItem = new JMenuItem("Add new card");
-        editMenu.add(addNewCardMenuItem);
-        JMenuItem editCurrentCard = new JMenuItem("Edit current card");
-        editMenu.add(editCurrentCard);
-        JMenuItem removeCurrentCardMenuItem = new JMenuItem("Remove current card");
-        editMenu.add(removeCurrentCardMenuItem);
-
-        // Add sub-menus to top menu
+        setupFileMenu();
+        setupEditMenu();
         topMenu.add(fileMenu);
         topMenu.add(editMenu);
+        setupMenuBarActionListeners();
+    }
 
-        // Define actionListeners for every menu-item
+    private void setupFileMenu() {
+        fileMenu = new JMenu("File");
+        clearInteractionsMenuItem = new JMenuItem("Reset interactions history");
+        fileMenu.add(clearInteractionsMenuItem);
+        importCardsMenuItem = new JMenuItem("Import cards from csv file.");
+        fileMenu.add(importCardsMenuItem);
+        settingsMenuItem = new JMenuItem("Settings");
+        fileMenu.add(settingsMenuItem);
+    }
+
+    private void setupEditMenu() {
+        editMenu = new JMenu("Edit");
+        addNewCardMenuItem = new JMenuItem("Add new card");
+        editMenu.add(addNewCardMenuItem);
+        editCurrentCard = new JMenuItem("Edit current card");
+        editMenu.add(editCurrentCard);
+        removeCurrentCardMenuItem = new JMenuItem("Remove current card");
+        editMenu.add(removeCurrentCardMenuItem);
+    }
+
+    private void setupMenuBarActionListeners() {
+        // File -> Reset interactions history
         clearInteractionsMenuItem.addActionListener(e -> {
             JDialog clearInteractionsFrame = new ClearInteractionsDialog(MainGUI.this);
             clearInteractionsFrame.setVisible(true);
         });
+
+        // File -> Settings
         settingsMenuItem.addActionListener(e -> {
             JDialog settingsFrame = new Settings("Settings", MainGUI.this);
             settingsFrame.setVisible(true);
         });
+
+        // File -> Import cards from csv.
+        importCardsMenuItem.addActionListener(e -> {
+            JFileChooser fc = new JFileChooser();
+            fc.setFileFilter(new FileFilter() {
+                @Override
+                public boolean accept(File f) {
+                    if (f.isDirectory()) {
+                        return true;
+                    }
+                    String extension = Utils.getExtension(f);
+                    return extension.equals("csv");
+                }
+
+                @Override
+                public String getDescription() {
+                    return "comma-separated CSV file";
+                }
+            });
+            int returnVal = fc.showDialog(MainGUI.this, "Import");
+            if (returnVal == fc.APPROVE_OPTION) {
+                File file = fc.getSelectedFile();
+                if (!MainGUI.this.queue.importCards(file)) {
+                    JOptionPane.showMessageDialog(MainGUI.this,
+                            "The selected file is invalid.",
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(MainGUI.this,
+                            "The cards were successfully imported.",
+                            "Error",
+                            JOptionPane.INFORMATION_MESSAGE);
+                }
+            }
+        });
+
+        // Edit -> Add new card.
         addNewCardMenuItem.addActionListener(e -> {
             String[] card = new CardEditDialog(MainGUI.this).showDialog();
             if (card != null) {
@@ -86,6 +143,8 @@ public class MainGUI extends JFrame {
                 this.showNextCard();
             }
         });
+
+        // Edit -> Edit current card.
         editCurrentCard.addActionListener(e -> {
             String[] card = new CardEditDialog(MainGUI.this, this.currentCard).showDialog();
             if (card != null) {
@@ -93,6 +152,8 @@ public class MainGUI extends JFrame {
                 this.showCard(currentCard);
             }
         });
+
+        // Edit -> Remove current card.
         removeCurrentCardMenuItem.addActionListener( e -> {
             int result = JOptionPane.showConfirmDialog(MainGUI.this,
                     "Are you sure you want to delete the current card?",
@@ -154,8 +215,8 @@ public class MainGUI extends JFrame {
                     card.getCardIndex(),
                     (card.getCardIndex() == 1) ? " has" : "s have"));
             this.successRateLabel.setText(String.format(
-                    "<html><div style=\"width: 160px\">This card has %.2f success rate.</div></html>",
-                    card.getSuccessRate()));
+                    "<html><div style=\"width: 160px\">This card has %.1f%% success rate.</div></html>",
+                    card.getSuccessRate() * 100));
             exposeDashboard();
         }
     }

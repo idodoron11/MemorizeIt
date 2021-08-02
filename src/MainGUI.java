@@ -13,7 +13,7 @@ public class MainGUI extends JFrame {
     private JLabel remainingCardLabel;
     private JLabel successRateLabel;
     private JScrollPane answerWrapper;
-    final CardsManager queue = new CardsManager();
+    final CardsManager mgr = new CardsManager();
     private CardsManager.Card currentCard;
     private JMenuBar topMenu;
     private JMenu fileMenu;
@@ -106,8 +106,8 @@ public class MainGUI extends JFrame {
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.QUESTION_MESSAGE);
             if (result == JOptionPane.YES_NO_OPTION) {
-                MainGUI.this.queue.deleteAllCards();
-                MainGUI.this.queue.refreshQueue();
+                MainGUI.this.mgr.deleteAllCards();
+                MainGUI.this.mgr.queue.refreshQueue();
                 MainGUI.this.showNextCard();
             }
         });
@@ -122,7 +122,7 @@ public class MainGUI extends JFrame {
                 if (!Utils.csvFileFilter.accept(file)) {
                     file = new File(file.toString() + ".csv");
                 }
-                if (MainGUI.this.queue.exportCards(file)) {
+                if (MainGUI.this.mgr.exportCards(file)) {
                     JOptionPane.showMessageDialog(MainGUI.this,
                             "The cards were successfully exported to " +
                                     file.getPath() +
@@ -145,7 +145,7 @@ public class MainGUI extends JFrame {
             int returnVal = fc.showDialog(MainGUI.this, "Import");
             if (returnVal == JFileChooser.APPROVE_OPTION) {
                 File file = fc.getSelectedFile();
-                if (!MainGUI.this.queue.importCards(file)) {
+                if (!MainGUI.this.mgr.importCards(file)) {
                     JOptionPane.showMessageDialog(MainGUI.this,
                             "An error occur. Please make sure to choose a comma-separated csv " +
                                     "file with exactly two columns.",
@@ -156,7 +156,7 @@ public class MainGUI extends JFrame {
                             "The cards were successfully imported.",
                             "Success",
                             JOptionPane.INFORMATION_MESSAGE);
-                    MainGUI.this.queue.refreshQueue();
+                    MainGUI.this.mgr.queue.refreshQueue();
                     MainGUI.this.showNextCard();
                 }
             }
@@ -172,8 +172,8 @@ public class MainGUI extends JFrame {
         addNewCardMenuItem.addActionListener(e -> {
             String[] card = new CardEditDialog(MainGUI.this).showDialog();
             if (card != null) {
-                queue.insertNewCard(card[0], card[1]);
-                queue.refreshQueue();
+                mgr.insertNewCard(card[0], card[1]);
+                mgr.queue.refreshQueue();
                 this.showNextCard();
             }
         });
@@ -226,7 +226,7 @@ public class MainGUI extends JFrame {
     }
 
     public void showNextCard() {
-        currentCard = queue.getNextCard();
+        currentCard = mgr.queue.getNextCard();
         showCard(currentCard);
     }
 

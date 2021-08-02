@@ -79,7 +79,7 @@ public class Settings extends JDialog{
         config.store(fw, "Saved Settings");
         fw.close();
         MainGUI parent = (MainGUI) this.getOwner();
-        parent.queue.refreshQueue();
+        parent.mgr.queue.refreshQueue();
         parent.showNextCard();
     }
 }

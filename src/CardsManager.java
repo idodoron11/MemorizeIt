@@ -4,16 +4,13 @@ import com.opencsv.exceptions.CsvValidationException;
 
 import java.io.*;
 import java.sql.*;
+import java.util.Queue;
 
 public class CardsManager {
     private Connection con;
     private boolean hasData = false;
-    ResultSet cardsQueue;
+    CardQueue queue = new CardQueue();
     PreparedStatement interactionStatement = null;
-
-    public CardsManager() {
-        refreshQueue();
-    }
 
     private void openConnection() throws ClassNotFoundException, SQLException {
         if (con == null) {
@@ -39,7 +36,7 @@ public class CardsManager {
             hasData = true;
             con.setAutoCommit(false);
             Statement state = con.createStatement();
-            System.out.println("Asserting a 'cards' table exists in the database.");
+            //System.out.println("Asserting a 'cards' table exists in the database.");
             state.addBatch("""
                 CREATE TABLE IF NOT EXISTS "cards" (
                 	"id"	INTEGER NOT NULL UNIQUE,
@@ -49,7 +46,7 @@ public class CardsManager {
                 );
                 """);
 
-            System.out.println("Asserting a 'interactions' table exists in the database.");
+            //System.out.println("Asserting a 'interactions' table exists in the database.");
             state.addBatch("""
                 CREATE TABLE IF NOT EXISTS "interactions" (
                 	"id"	INTEGER NOT NULL UNIQUE,
@@ -64,82 +61,6 @@ public class CardsManager {
             state.close();
             con.setAutoCommit(true);
         }
-    }
-
-    /***
-     * Dispose the current queue, and re-query db to create a new queue.
-     * @return the number of cards in the new queue.
-     */
-    public void refreshQueue() {
-        try {
-            openConnection();
-            PreparedStatement ps = con.prepareStatement("""
-                        SELECT
-                        	c.id as id,
-                        	c.question as question,
-                        	c.answer as answer,
-                        	i.tmpLastInteraction as lastInteraction,
-                        	i.tmpSuccessfulInteractions as successfulInteractions,
-                        	i.tmpTotalInteractions as totalInteractions,
-                        	i.tmpSuccessRate as successRate
-                        FROM cards c
-                        LEFT JOIN (
-                        	SELECT
-                        		tmp.cardID as tmpCardID,
-                        		tmp.time as tmpLastInteraction,
-                        		COALESCE(SUM(tmp.result), 0) tmpSuccessfulInteractions,
-                        		COALESCE(COUNT(tmp.result), 0) tmpTotalInteractions,
-                        		COALESCE(AVG(tmp.result), 0) tmpSuccessRate
-                        	FROM (
-                        		SELECT *, ROW_NUMBER()
-                        		  OVER (PARTITION BY interactions.cardID
-                        		  ORDER BY interactions.time DESC) rn
-                        		  FROM interactions
-                        	) as tmp
-                        	WHERE tmp.rn <= ? OR 0 = ?
-                        	GROUP BY tmpCardID
-                        ) as i ON i.tmpCardID = c.id
-                        WHERE (
-                        	COALESCE(i.tmpLastInteraction, 0) < strftime('%s', 'now') - 60 * 60 * ? AND
-                        	COALESCE(i.tmpSuccessRate, 0) <= 0.01 * ?
-                        ) OR (
-                        	COALESCE(i.tmpLastInteraction, 0) < strftime('%s', 'now') - 24 * 60 * 60 * ?
-                        )
-                        ORDER BY
-                        	i.tmpSuccessRate ASC,
-                        	i.tmpLastInteraction ASC
-                        """);
-            ps.setInt(1, Integer.parseInt(Settings.config.getProperty("interactionsFocus")));
-            ps.setInt(2, Integer.parseInt(Settings.config.getProperty("interactionsFocus")));
-            ps.setInt(3, Integer.parseInt(Settings.config.getProperty("waitAfterInteraction")));
-            ps.setDouble(4, Double.parseDouble(Settings.config.getProperty("successRateThreshold")));
-            ps.setInt(5, Integer.parseInt(Settings.config.getProperty("maxWaitAfterInteraction")));
-            if (this.cardsQueue != null) {
-                cardsQueue.close();
-            }
-            cardsQueue = ps.executeQuery();
-        } catch (SQLException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public Card getNextCard() {
-        try {
-            if (cardsQueue.next()) {
-                Card result = new Card(cardsQueue);
-                System.out.println(result);
-                return result;
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        try {
-            this.cardsQueue.close();
-            this.closeConnection();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 
     public int insertNewCard(String question, String answer) {
@@ -234,7 +155,7 @@ public class CardsManager {
             ps.setLong(2, from);
             ps.execute();
             ps.close();
-            System.out.println("Reset completed.");
+            //System.out.println("Reset completed.");
         } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -246,7 +167,7 @@ public class CardsManager {
             Statement statement = con.createStatement();
             statement.executeUpdate("DELETE FROM interactions");
             statement.close();
-            System.out.println("Reset completed.");
+            //System.out.println("Reset completed.");
         } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -343,7 +264,7 @@ public class CardsManager {
                 interactionStatement.execute();
                 ++this.totalInteractions;
                 this.successfulInteractions += interactionResult;
-                System.out.println("Interaction completed.");
+                //System.out.println("Interaction completed.");
             } catch (SQLException | ClassNotFoundException e) {
                 e.printStackTrace();
             }
@@ -366,7 +287,7 @@ public class CardsManager {
                 ps.setInt(3, this.ID);
                 ps.executeUpdate();
                 ps.close();
-                System.out.println("Update completed.");
+                //System.out.println("Update completed.");
             } catch (SQLException | ClassNotFoundException e) {
                 e.printStackTrace();
             }
@@ -386,7 +307,7 @@ public class CardsManager {
                 ps1.close();
                 ps2.close();
                 con.setAutoCommit(true);
-                System.out.println("Card removed successfully.");
+                //System.out.println("Card removed successfully.");
             } catch (SQLException | ClassNotFoundException e) {
                 e.printStackTrace();
             }
@@ -414,6 +335,87 @@ public class CardsManager {
                     ", totalInteractions=" + totalInteractions +
                     ", cardIndex=" + cardIndex +
                     '}';
+        }
+    }
+
+    public class CardQueue {
+        ResultSet cardsQueue;
+
+        public CardQueue() {
+            refreshQueue();
+        }
+
+        public void refreshQueue() {
+            try {
+                openConnection();
+                PreparedStatement ps = con.prepareStatement("""
+                        SELECT
+                        	c.id as id,
+                        	c.question as question,
+                        	c.answer as answer,
+                        	i.tmpLastInteraction as lastInteraction,
+                        	i.tmpSuccessfulInteractions as successfulInteractions,
+                        	i.tmpTotalInteractions as totalInteractions,
+                        	i.tmpSuccessRate as successRate
+                        FROM cards c
+                        LEFT JOIN (
+                        	SELECT
+                        		tmp.cardID as tmpCardID,
+                        		tmp.time as tmpLastInteraction,
+                        		COALESCE(SUM(tmp.result), 0) tmpSuccessfulInteractions,
+                        		COALESCE(COUNT(tmp.result), 0) tmpTotalInteractions,
+                        		COALESCE(AVG(tmp.result), 0) tmpSuccessRate
+                        	FROM (
+                        		SELECT *, ROW_NUMBER()
+                        		  OVER (PARTITION BY interactions.cardID
+                        		  ORDER BY interactions.time DESC) rn
+                        		  FROM interactions
+                        	) as tmp
+                        	WHERE tmp.rn <= ? OR 0 = ?
+                        	GROUP BY tmpCardID
+                        ) as i ON i.tmpCardID = c.id
+                        WHERE (
+                        	COALESCE(i.tmpLastInteraction, 0) < strftime('%s', 'now') - 60 * 60 * ? AND
+                        	COALESCE(i.tmpSuccessRate, 0) <= 0.01 * ?
+                        ) OR (
+                        	COALESCE(i.tmpLastInteraction, 0) < strftime('%s', 'now') - 24 * 60 * 60 * ?
+                        )
+                        ORDER BY
+                        	i.tmpSuccessRate ASC,
+                        	i.tmpLastInteraction ASC
+                        """);
+                ps.setInt(1, Integer.parseInt(Settings.config.getProperty("interactionsFocus")));
+                ps.setInt(2, Integer.parseInt(Settings.config.getProperty("interactionsFocus")));
+                ps.setInt(3, Integer.parseInt(Settings.config.getProperty("waitAfterInteraction")));
+                ps.setDouble(4, Double.parseDouble(Settings.config.getProperty("successRateThreshold")));
+                ps.setInt(5, Integer.parseInt(Settings.config.getProperty("maxWaitAfterInteraction")));
+                if (this.cardsQueue != null) {
+                    cardsQueue.close();
+                }
+                cardsQueue = ps.executeQuery();
+            } catch (SQLException | ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+        }
+
+        public Card getNextCard() {
+            try {
+                if (cardsQueue.next()) {
+                    Card result = new Card(cardsQueue);
+                    //System.out.println(result);
+                    return result;
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            try {
+                this.cardsQueue.close();
+                this.cardsQueue = null;
+                CardsManager.this.closeConnection();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+            return null;
         }
     }
 

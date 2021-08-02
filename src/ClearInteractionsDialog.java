@@ -28,9 +28,9 @@ public class ClearInteractionsDialog extends JDialog {
                     JOptionPane.QUESTION_MESSAGE);
             if (result == JOptionPane.YES_NO_OPTION) {
                 MainGUI parent = (MainGUI) ClearInteractionsDialog.this.getParent();
-                parent.queue.resetAllInteractions();
+                parent.mgr.resetAllInteractions();
                 ClearInteractionsDialog.super.dispose();
-                parent.queue.refreshQueue();
+                parent.mgr.queue.refreshQueue();
                 parent.showNextCard();
             }
         });
@@ -44,9 +44,9 @@ public class ClearInteractionsDialog extends JDialog {
                 MainGUI parent = (MainGUI) ClearInteractionsDialog.this.getParent();
                 Date fromDate = (Date) fromInput.getValue();
                 Date untilDate = (Date) untilInput.getValue();
-                parent.queue.resetInteractions(fromDate.getTime() / 1000, untilDate.getTime() / 1000);
+                parent.mgr.resetInteractions(fromDate.getTime() / 1000, untilDate.getTime() / 1000);
                 ClearInteractionsDialog.super.dispose();
-                parent.queue.refreshQueue();
+                parent.mgr.queue.refreshQueue();
                 parent.showNextCard();
             }
         });

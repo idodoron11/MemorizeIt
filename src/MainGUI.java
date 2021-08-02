@@ -17,14 +17,15 @@ public class MainGUI extends JFrame {
     final CardsManager queue = new CardsManager();
     private CardsManager.Card currentCard;
     private JMenuBar topMenu;
-    JMenu fileMenu;
-    JMenuItem clearInteractionsMenuItem;
-    JMenuItem importCardsMenuItem;
-    JMenuItem settingsMenuItem;
-    JMenu editMenu;
-    JMenuItem addNewCardMenuItem;
-    JMenuItem editCurrentCard;
-    JMenuItem removeCurrentCardMenuItem;
+    private JMenu fileMenu;
+    private JMenuItem clearInteractionsMenuItem;
+    private JMenuItem importCardsMenuItem;
+    private JMenuItem settingsMenuItem;
+    private JMenu editMenu;
+    private JMenuItem addNewCardMenuItem;
+    private JMenuItem editCurrentCard;
+    private JMenuItem removeCurrentCardMenuItem;
+    private JMenuItem exportCardsMenuItem;
 
     public MainGUI(String title){
         super(title);
@@ -70,6 +71,8 @@ public class MainGUI extends JFrame {
         fileMenu = new JMenu("File");
         clearInteractionsMenuItem = new JMenuItem("Reset interactions history");
         fileMenu.add(clearInteractionsMenuItem);
+        exportCardsMenuItem = new JMenuItem("Export cards to csv file.");
+        fileMenu.add(exportCardsMenuItem);
         importCardsMenuItem = new JMenuItem("Import cards from csv file.");
         fileMenu.add(importCardsMenuItem);
         settingsMenuItem = new JMenuItem("Settings");
@@ -99,36 +102,49 @@ public class MainGUI extends JFrame {
             settingsFrame.setVisible(true);
         });
 
+        // File -> Export cards to csv.
+        exportCardsMenuItem.addActionListener(e -> {
+            JFileChooser fc = new JFileChooser();
+            fc.setFileFilter(Utils.csvFileFilter);
+            int returnVal = fc.showSaveDialog(MainGUI.this);
+            if (returnVal == JFileChooser.APPROVE_OPTION) {
+                File file = fc.getSelectedFile();
+                if (!Utils.csvFileFilter.accept(file)) {
+                    file = new File(file.toString() + ".csv");
+                }
+                if (MainGUI.this.queue.exportCards(file)) {
+                    JOptionPane.showMessageDialog(MainGUI.this,
+                            "The cards were successfully exported to " +
+                                    file.getPath() +
+                                    ".",
+                            "Success",
+                            JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(MainGUI.this,
+                            "An error occur. See log for details.",
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
+
         // File -> Import cards from csv.
         importCardsMenuItem.addActionListener(e -> {
             JFileChooser fc = new JFileChooser();
-            fc.setFileFilter(new FileFilter() {
-                @Override
-                public boolean accept(File f) {
-                    if (f.isDirectory()) {
-                        return true;
-                    }
-                    String extension = Utils.getExtension(f);
-                    return extension.equals("csv");
-                }
-
-                @Override
-                public String getDescription() {
-                    return "comma-separated CSV file";
-                }
-            });
+            fc.setFileFilter(Utils.csvFileFilter);
             int returnVal = fc.showDialog(MainGUI.this, "Import");
-            if (returnVal == fc.APPROVE_OPTION) {
+            if (returnVal == JFileChooser.APPROVE_OPTION) {
                 File file = fc.getSelectedFile();
                 if (!MainGUI.this.queue.importCards(file)) {
                     JOptionPane.showMessageDialog(MainGUI.this,
-                            "The selected file is invalid.",
+                            "An error occur. Please make sure to choose a comma-separated csv " +
+                                    "file with exactly two columns.",
                             "Error",
                             JOptionPane.ERROR_MESSAGE);
                 } else {
                     JOptionPane.showMessageDialog(MainGUI.this,
                             "The cards were successfully imported.",
-                            "Error",
+                            "Success",
                             JOptionPane.INFORMATION_MESSAGE);
                 }
             }

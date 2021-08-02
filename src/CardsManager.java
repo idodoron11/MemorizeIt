@@ -1,7 +1,9 @@
+import com.opencsv.CSVReader;
+import com.opencsv.CSVWriter;
+import com.opencsv.exceptions.CsvValidationException;
+
 import java.io.*;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Set;
 
 public class CardsManager {
     private Connection con;
@@ -13,9 +15,11 @@ public class CardsManager {
     }
 
     private void openConnection() throws ClassNotFoundException, SQLException {
-        Class.forName("org.sqlite.JDBC");
-        con = DriverManager.getConnection("jdbc:sqlite:data.db");
-        initialise();
+        if (con == null) {
+            Class.forName("org.sqlite.JDBC");
+            con = DriverManager.getConnection("jdbc:sqlite:data.db");
+            initialise();
+        }
     }
 
     public void closeConnection() throws SQLException {
@@ -66,9 +70,7 @@ public class CardsManager {
      */
     public void refreshQueue() {
         try {
-            if (con == null) {
-                openConnection();
-            }
+            openConnection();
             PreparedStatement ps = con.prepareStatement("""
                         SELECT
                         	c.id as id,
@@ -132,9 +134,7 @@ public class CardsManager {
     public int insertNewCard(String question, String answer) {
         int id = -1;
         try {
-            if (con == null) {
-                openConnection();
-            }
+            openConnection();
             PreparedStatement ps = con.prepareStatement(
                     "INSERT INTO cards (question, answer) VALUES(?, ?);",
                     Statement.RETURN_GENERATED_KEYS);
@@ -152,36 +152,27 @@ public class CardsManager {
     }
 
     public boolean importCards(File file) {
-        try (BufferedReader bf = new BufferedReader(new FileReader(file))) {
-            if (con == null) {
-                openConnection();
-            }
-
-            String line;
-            String[] values;
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            openConnection();
+            CSVReader reader = new CSVReader(br);
+            String[] line;
 
             con.setAutoCommit(false);
             PreparedStatement ps = con.prepareStatement(
                     "INSERT INTO cards (question, answer) VALUES(?, ?);",
                     Statement.RETURN_GENERATED_KEYS);
-            while ((line = bf.readLine()) != null) {
-                values = line.split(",(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
-                if (values.length != 2) {
+            while ((line = reader.readNext()) != null) {
+                if (line.length != 2) {
                     throw new IOException("The structure of the csv file is invalid.");
                 }
-                if (values[0].charAt(0) == '"' && values[0].charAt(values[0].length()-1) == '"') {
-                    values[0] = values[0].substring(1, values[0].length() - 1);
-                }
-                if (values[1].charAt(0) == '"' && values[1].charAt(values[1].length()-1) == '"') {
-                    values[1] = values[1].substring(1, values[1].length() - 1);
-                }
-                ps.setString(1, values[0]);
-                ps.setString(2, values[1]);
+                ps.setString(1, line[0]);
+                ps.setString(2, line[1]);
                 ps.execute();
             }
+            reader.close();
             con.commit();
             con.setAutoCommit(true);
-        } catch (IOException | SQLException | ClassNotFoundException e) {
+        } catch (IOException | SQLException | ClassNotFoundException | CsvValidationException e) {
             e.printStackTrace();
             try {
                 con.rollback();
@@ -194,11 +185,31 @@ public class CardsManager {
         return true;
     }
 
+    public boolean exportCards(File target) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(target, false))) {
+            openConnection();
+            CSVWriter writer = new CSVWriter(bw);
+            Statement statement = con.createStatement();
+            ResultSet rs = statement.executeQuery("SELECT question, answer FROM cards");
+            while (rs.next()) {
+                writer.writeNext(new String[] {
+                        rs.getString("question"),
+                        rs.getString("answer")
+                });
+            }
+            rs.close();
+            statement.close();
+            writer.close();
+        } catch (IOException | SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
     public void resetInteractions(long from, long until) {
         try {
-            if (con == null) {
-                openConnection();
-            }
+            openConnection();
             PreparedStatement ps = con.prepareStatement("""
                     DELETE FROM interactions
                     WHERE
@@ -216,9 +227,7 @@ public class CardsManager {
 
     public void resetAllInteractions() {
         try {
-            if (con == null) {
-                openConnection();
-            }
+            openConnection();
             PreparedStatement ps = con.prepareStatement("DELETE FROM interactions");
             ps.execute();
             System.out.println("Reset completed.");
@@ -291,9 +300,7 @@ public class CardsManager {
 
         public void interact(double interactionResult) {
             try {
-                if (con == null) {
-                    openConnection();
-                }
+                openConnection();
                 PreparedStatement ps = con.prepareStatement("""
                     INSERT INTO interactions (cardID, result, time) VALUES(?, ?, strftime('%s', 'now'));
                     """);
@@ -312,9 +319,7 @@ public class CardsManager {
             this.question = question;
             this.answer = answer;
             try {
-                if (con == null) {
-                    openConnection();
-                }
+                openConnection();
                 PreparedStatement ps = con.prepareStatement("""
                     UPDATE cards
                     SET
@@ -334,9 +339,7 @@ public class CardsManager {
 
         public void deleteCard() {
             try {
-                if (con == null) {
-                    openConnection();
-                }
+                openConnection();
                 con.setAutoCommit(false);
                 PreparedStatement ps1 = con.prepareStatement("DELETE FROM cards WHERE cards.id = ?");
                 ps1.setInt(1, this.ID);

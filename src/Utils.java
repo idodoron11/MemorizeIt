@@ -1,6 +1,23 @@
 import java.io.File;
+import javax.swing.filechooser.FileFilter;
 
 public class Utils {
+
+    public static FileFilter csvFileFilter = new FileFilter() {
+        @Override
+        public boolean accept(File f) {
+            if (f.isDirectory()) {
+                return true;
+            }
+            String extension = Utils.getExtension(f);
+            return extension.equals("csv");
+        }
+
+        @Override
+        public String getDescription() {
+            return "comma-separated CSV file";
+        }
+    };
 
     public static String getExtension(File f) {
         String ext = "";

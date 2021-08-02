@@ -18,6 +18,7 @@ public class CardEditDialog extends JDialog {
             dispose();
         });
         this.cancelButton.addActionListener(e -> dispose());
+        answerInput.setFont(questionInput.getFont());
         this.pack();
     }
 
@@ -26,7 +27,6 @@ public class CardEditDialog extends JDialog {
         commitButton.setText("Update Card");
         questionInput.setText(card.getQuestion());
         answerInput.setText(card.getAnswer());
-        answerInput.setFont(questionInput.getFont());
     }
 
     public CardEditDialog(Frame owner) {

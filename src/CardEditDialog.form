@@ -63,14 +63,21 @@
           </component>
         </children>
       </grid>
-      <component id="7029" class="javax.swing.JTextArea" binding="answerInput">
+      <scrollpane id="1c9ca">
         <constraints>
-          <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="6" hsize-policy="6" anchor="0" fill="3" indent="0" use-parent-layout="false">
-            <preferred-size width="350" height="50"/>
+          <grid row="1" column="1" row-span="1" col-span="1" vsize-policy="7" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false">
+            <preferred-size width="350" height="200"/>
           </grid>
         </constraints>
         <properties/>
-      </component>
+        <border type="none"/>
+        <children>
+          <component id="7029" class="javax.swing.JTextArea" binding="answerInput">
+            <constraints/>
+            <properties/>
+          </component>
+        </children>
+      </scrollpane>
     </children>
   </grid>
 </form>

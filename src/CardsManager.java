@@ -58,6 +58,10 @@ public class CardsManager {
         }
     }
 
+    /***
+     * Dispose the current queue, and re-query db to create a new queue.
+     * @return the number of cards in the new queue.
+     */
     public void refreshQueue() {
         try {
             if (con == null) {
@@ -185,14 +189,17 @@ public class CardsManager {
         private final long lastInteraction;
         private double successfulInteractions;
         private int totalInteractions;
+        private int cardIndex;
 
-        private Card(int ID, String question, String answer, long lastInteraction, double successfulInteractions, int totalInteractions) {
+        private Card(int ID, String question, String answer, long lastInteraction, double successfulInteractions,
+                     int totalInteractions, int cardIndex) {
             this.ID = ID;
             this.question = question;
             this.answer = answer;
             this.lastInteraction = lastInteraction;
             this.successfulInteractions = successfulInteractions;
             this.totalInteractions = totalInteractions;
+            this.cardIndex = cardIndex;
         }
 
         public Card(ResultSet rs) throws SQLException {
@@ -201,7 +208,8 @@ public class CardsManager {
                     rs.getString("answer"),
                     rs.getLong("lastInteraction"),
                     rs.getDouble("successfulInteractions"),
-                    rs.getInt("totalInteractions"));
+                    rs.getInt("totalInteractions"),
+                    rs.getRow());
         }
 
         public double getSuccessRate() {
@@ -214,6 +222,10 @@ public class CardsManager {
 
         public int getID() {
             return ID;
+        }
+
+        public int getCardIndex() {
+            return cardIndex;
         }
 
         public long getLastInteraction() {
@@ -315,6 +327,7 @@ public class CardsManager {
                     ", lastInteraction=" + lastInteraction +
                     ", successfulInteractions=" + successfulInteractions +
                     ", totalInteractions=" + totalInteractions +
+                    ", cardIndex=" + cardIndex +
                     '}';
         }
     }

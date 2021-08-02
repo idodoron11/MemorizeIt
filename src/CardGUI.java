@@ -10,6 +10,9 @@ public class CardGUI extends JFrame {
     private JButton exposeAnswerButton;
     private JLabel questionDescription;
     private JLabel questionAnswer;
+    private JLabel remainingCardLabel;
+    private JLabel successRateLabel;
+    private JScrollPane answerWrapper;
     final CardsManager queue = new CardsManager();
     private CardsManager.Card currentCard;
 
@@ -106,12 +109,26 @@ public class CardGUI extends JFrame {
 
     public void exposeAnswer() {
         this.exposeAnswerButton.setVisible(false);
+        this.answerWrapper.setVisible(true);
         this.questionAnswer.setVisible(true);
     }
 
     public void hideAnswer() {
         this.exposeAnswerButton.setVisible(true);
+        this.answerWrapper.setVisible(false);
         this.questionAnswer.setVisible(false);
+    }
+
+    public void exposeDashboard() {
+        this.wellButton.setVisible(true);
+        this.badButton.setVisible(true);
+        this.vagueButton.setVisible(true);
+    }
+
+    public void hideDashboard() {
+        this.wellButton.setVisible(false);
+        this.badButton.setVisible(false);
+        this.vagueButton.setVisible(false);
     }
 
     public void showNextCard() {
@@ -120,22 +137,27 @@ public class CardGUI extends JFrame {
     }
 
     public void showCard(CardsManager.Card card) {
+        hideAnswer();
         if (card == null) {
             this.questionDescription.setText("<html><div style=\"width: 300px;\"><h2>There are no more questions for now. Please come back later.</h2></div></html>");
             this.questionAnswer.setText("");
-            this.questionAnswer.setVisible(false);
-            this.wellButton.setVisible(false);
-            this.badButton.setVisible(false);
-            this.vagueButton.setVisible(false);
+            this.successRateLabel.setText("");
+            this.remainingCardLabel.setText("");
+            hideDashboard();
             this.exposeAnswerButton.setVisible(false);
         } else {
             this.questionDescription.setText("<html><div style=\"width: 300px;\"><h1>"+card.getQuestion()+"</h1></div></html>");
-            this.questionAnswer.setText("<html><div style=\"width: 300px;\">"+card.getAnswer()+"</div></html>");
-            this.questionAnswer.setVisible(false);
-            this.exposeAnswerButton.setVisible(true);
-            this.wellButton.setVisible(true);
-            this.badButton.setVisible(true);
-            this.vagueButton.setVisible(true);
+            this.questionAnswer.setText("<html><div style=\"width: 300px;\">"+card.getAnswer()
+                    .replace("\n", "<br>")
+                    .replace("\t", "&nbsp;&nbsp;&nbsp;&nbsp;")+"</div></html>");
+            this.remainingCardLabel.setText(String.format(
+                    "<html><div style=\"width: 160px\">%d card%s been shown in this session.</div></html>",
+                    card.getCardIndex(),
+                    (card.getCardIndex() == 1) ? " has" : "s have"));
+            this.successRateLabel.setText(String.format(
+                    "<html><div style=\"width: 160px\">This card has %.2f success rate.</div></html>",
+                    card.getSuccessRate()));
+            exposeDashboard();
         }
     }
 }

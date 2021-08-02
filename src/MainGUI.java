@@ -3,7 +3,6 @@ import javax.swing.*;
 public class MainGUI extends JFrame {
     private JPanel mainPanel;
     private JPanel Content;
-    private JPanel Dashboard;
     private JButton wellButton;
     private JButton badButton;
     private JButton vagueButton;

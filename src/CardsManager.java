@@ -39,9 +39,8 @@ public class CardsManager {
             hasData = true;
             con.setAutoCommit(false);
             Statement state = con.createStatement();
-            System.out.println("Creating cards table.");
-            Statement state2 = con.createStatement();
-            state2.execute("""
+            System.out.println("Asserting a 'cards' table exists in the database.");
+            state.addBatch("""
                 CREATE TABLE IF NOT EXISTS "cards" (
                 	"id"	INTEGER NOT NULL UNIQUE,
                 	"question"	varchar(60) NOT NULL,
@@ -50,8 +49,8 @@ public class CardsManager {
                 );
                 """);
 
-            System.out.println("Creating interactions table.");
-            state2.execute("""
+            System.out.println("Asserting a 'interactions' table exists in the database.");
+            state.addBatch("""
                 CREATE TABLE IF NOT EXISTS "interactions" (
                 	"id"	INTEGER NOT NULL UNIQUE,
                 	"cardID"	INTEGER NOT NULL,
@@ -60,8 +59,9 @@ public class CardsManager {
                 	PRIMARY KEY("id")
                 );
                 """);
+            state.executeBatch();
             con.commit();
-            state2.close();
+            state.close();
             con.setAutoCommit(true);
         }
     }
@@ -179,12 +179,13 @@ public class CardsManager {
                 }
                 ps.setString(1, line[0]);
                 ps.setString(2, line[1]);
-                ps.execute();
+                ps.addBatch();
             }
             reader.close();
+            ps.executeBatch();
             con.commit();
-            con.setAutoCommit(true);
             ps.close();
+            con.setAutoCommit(true);
         } catch (IOException | SQLException | ClassNotFoundException | CsvValidationException e) {
             e.printStackTrace();
             try {
@@ -256,9 +257,9 @@ public class CardsManager {
             openConnection();
             con.setAutoCommit(false);
             Statement state = con.createStatement();
-            state.executeUpdate("DELETE FROM cards");
-            state = con.createStatement();
-            state.executeUpdate("DELETE FROM interactions");
+            state.addBatch("DELETE FROM cards");
+            state.addBatch("DELETE FROM interactions");
+            state.executeBatch();
             con.commit();
             con.setAutoCommit(true);
             state.close();
@@ -378,7 +379,6 @@ public class CardsManager {
                 PreparedStatement ps1 = con.prepareStatement("DELETE FROM cards WHERE cards.id = ?");
                 ps1.setInt(1, this.ID);
                 ps1.executeUpdate();
-                ps1.close();
                 PreparedStatement ps2 = con.prepareStatement("DELETE FROM interactions WHERE interactions.cardID = ?");
                 ps2.setInt(1, this.ID);
                 ps2.executeUpdate();

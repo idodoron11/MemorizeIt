@@ -1,6 +1,5 @@
 import javax.swing.*;
 import java.io.*;
-import java.util.Properties;
 
 public class Main {
 
@@ -21,7 +20,7 @@ public class Main {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        JFrame frame = new CardGUI("MemorizeIt");
+        JFrame frame = new MainGUI("MemorizeIt");
         frame.setVisible(true);
     }
 }

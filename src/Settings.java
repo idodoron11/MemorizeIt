@@ -14,7 +14,7 @@ public class Settings extends JDialog{
     private JSpinner successRateThresholdInput;
     private JSpinner interactionsFocusInput;
 
-    public Settings(String title, CardGUI parent) {
+    public Settings(String title, MainGUI parent) {
         super(parent);
         this.setModal(true);
         this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -78,7 +78,7 @@ public class Settings extends JDialog{
         Writer fw = new FileWriter(configFile);
         config.store(fw, "Saved Settings");
         fw.close();
-        CardGUI parent = (CardGUI) this.getOwner();
+        MainGUI parent = (MainGUI) this.getOwner();
         parent.queue.refreshQueue();
         parent.showNextCard();
     }

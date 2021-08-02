@@ -9,7 +9,7 @@ public class ClearInteractionsDialog extends JDialog {
     private JPanel mainPanel;
     private JButton cancelButton;
 
-    public ClearInteractionsDialog(CardGUI owner) {
+    public ClearInteractionsDialog(MainGUI owner) {
         super(owner, true);
         this.setTitle("Reset Interactions History");
         this.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -27,7 +27,7 @@ public class ClearInteractionsDialog extends JDialog {
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.QUESTION_MESSAGE);
             if (result == JOptionPane.YES_NO_OPTION) {
-                CardGUI parent = (CardGUI) ClearInteractionsDialog.this.getParent();
+                MainGUI parent = (MainGUI) ClearInteractionsDialog.this.getParent();
                 parent.queue.resetAllInteractions();
                 ClearInteractionsDialog.super.dispose();
                 parent.queue.refreshQueue();
@@ -41,7 +41,7 @@ public class ClearInteractionsDialog extends JDialog {
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.QUESTION_MESSAGE);
             if (result == JOptionPane.YES_NO_OPTION) {
-                CardGUI parent = (CardGUI) ClearInteractionsDialog.this.getParent();
+                MainGUI parent = (MainGUI) ClearInteractionsDialog.this.getParent();
                 Date fromDate = (Date) fromInput.getValue();
                 Date untilDate = (Date) untilInput.getValue();
                 parent.queue.resetInteractions(fromDate.getTime() / 1000, untilDate.getTime() / 1000);

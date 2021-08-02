@@ -1,6 +1,6 @@
 import javax.swing.*;
 
-public class CardGUI extends JFrame {
+public class MainGUI extends JFrame {
     private JPanel mainPanel;
     private JPanel Content;
     private JPanel Dashboard;
@@ -16,7 +16,7 @@ public class CardGUI extends JFrame {
     final CardsManager queue = new CardsManager();
     private CardsManager.Card currentCard;
 
-    public CardGUI(String title){
+    public MainGUI(String title){
         super(title);
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         this.setContentPane(mainPanel);
@@ -72,15 +72,15 @@ public class CardGUI extends JFrame {
 
         // Define actionListeners for every menu-item
         clearInteractionsMenuItem.addActionListener(e -> {
-            JDialog clearInteractionsFrame = new ClearInteractionsDialog(CardGUI.this);
+            JDialog clearInteractionsFrame = new ClearInteractionsDialog(MainGUI.this);
             clearInteractionsFrame.setVisible(true);
         });
         settingsMenuItem.addActionListener(e -> {
-            JDialog settingsFrame = new Settings("Settings", CardGUI.this);
+            JDialog settingsFrame = new Settings("Settings", MainGUI.this);
             settingsFrame.setVisible(true);
         });
         addNewCardMenuItem.addActionListener(e -> {
-            String[] card = new CardEditDialog(CardGUI.this).showDialog();
+            String[] card = new CardEditDialog(MainGUI.this).showDialog();
             if (card != null) {
                 queue.insertNewCard(card[0], card[1]);
                 queue.refreshQueue();
@@ -88,14 +88,14 @@ public class CardGUI extends JFrame {
             }
         });
         editCurrentCard.addActionListener(e -> {
-            String[] card = new CardEditDialog(CardGUI.this, this.currentCard).showDialog();
+            String[] card = new CardEditDialog(MainGUI.this, this.currentCard).showDialog();
             if (card != null) {
                 this.currentCard.updateCard(card[0], card[1]);
                 this.showCard(currentCard);
             }
         });
         removeCurrentCardMenuItem.addActionListener( e -> {
-            int result = JOptionPane.showConfirmDialog(CardGUI.this,
+            int result = JOptionPane.showConfirmDialog(MainGUI.this,
                     "Are you sure you want to delete the current card?",
                     "Confirmation Dialog",
                     JOptionPane.YES_NO_OPTION,

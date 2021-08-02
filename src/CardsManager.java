@@ -32,27 +32,23 @@ public class CardsManager {
     private void initialise() throws SQLException {
         if (!hasData) {
             hasData = true;
+            con.setAutoCommit(false);
             Statement state = con.createStatement();
-            ResultSet res = state.executeQuery("SELECT * FROM sqlite_master WHERE type = 'table' AND name = 'cards';");
-            if (!res.next()) {
-                System.out.println("Creating cards table.");
-                Statement state2 = con.createStatement();
-                state2.execute("""
-                CREATE TABLE "cards" (
+            System.out.println("Creating cards table.");
+            Statement state2 = con.createStatement();
+            state2.execute("""
+                CREATE TABLE IF NOT EXISTS "cards" (
                 	"id"	INTEGER NOT NULL UNIQUE,
                 	"question"	varchar(60) NOT NULL,
                 	"answer"	varchar(60) NOT NULL,
                 	PRIMARY KEY("id")
                 );
                 """);
-            }
 
-            res = state.executeQuery("SELECT * FROM sqlite_master WHERE type = 'table' AND name = 'interactions';");
-            if (!res.next()) {
-                System.out.println("Creating interactions table.");
-                Statement state2 = con.createStatement();
-                state2.execute("""
-                CREATE TABLE "interactions" (
+            System.out.println("Creating interactions table.");
+            state2 = con.createStatement();
+            state2.execute("""
+                CREATE TABLE IF NOT EXISTS "interactions" (
                 	"id"	INTEGER NOT NULL UNIQUE,
                 	"cardID"	INTEGER NOT NULL,
                 	"result"	NUMERIC NOT NULL DEFAULT 0,
@@ -60,7 +56,8 @@ public class CardsManager {
                 	PRIMARY KEY("id")
                 );
                 """);
-            }
+            con.commit();
+            con.setAutoCommit(true);
         }
     }
 

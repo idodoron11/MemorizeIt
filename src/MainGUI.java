@@ -146,6 +146,8 @@ public class MainGUI extends JFrame {
                             "The cards were successfully imported.",
                             "Success",
                             JOptionPane.INFORMATION_MESSAGE);
+                    MainGUI.this.queue.refreshQueue();
+                    MainGUI.this.showNextCard();
                 }
             }
         });

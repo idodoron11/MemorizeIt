@@ -26,6 +26,7 @@ public class MainGUI extends JFrame {
     private JMenuItem editCurrentCard;
     private JMenuItem removeCurrentCardMenuItem;
     private JMenuItem exportCardsMenuItem;
+    private JMenuItem deleteAllCardsMenuItem;
 
     public MainGUI(String title){
         super(title);
@@ -71,6 +72,8 @@ public class MainGUI extends JFrame {
         fileMenu = new JMenu("File");
         clearInteractionsMenuItem = new JMenuItem("Reset interactions history");
         fileMenu.add(clearInteractionsMenuItem);
+        deleteAllCardsMenuItem = new JMenuItem("Permanently delete all cards");
+        fileMenu.add(deleteAllCardsMenuItem);
         exportCardsMenuItem = new JMenuItem("Export cards to csv file.");
         fileMenu.add(exportCardsMenuItem);
         importCardsMenuItem = new JMenuItem("Import cards from csv file.");
@@ -96,10 +99,18 @@ public class MainGUI extends JFrame {
             clearInteractionsFrame.setVisible(true);
         });
 
-        // File -> Settings
-        settingsMenuItem.addActionListener(e -> {
-            JDialog settingsFrame = new Settings("Settings", MainGUI.this);
-            settingsFrame.setVisible(true);
+        // File -> Permanently delete all cards
+        deleteAllCardsMenuItem.addActionListener(e -> {
+            int result = JOptionPane.showConfirmDialog(MainGUI.this,
+                    "Are you sure you want to permanently delete all cards?",
+                    "Confirmation Dialog",
+                    JOptionPane.YES_NO_OPTION,
+                    JOptionPane.QUESTION_MESSAGE);
+            if (result == JOptionPane.YES_NO_OPTION) {
+                MainGUI.this.queue.deleteAllCards();
+                MainGUI.this.queue.refreshQueue();
+                MainGUI.this.showNextCard();
+            }
         });
 
         // File -> Export cards to csv.
@@ -150,6 +161,12 @@ public class MainGUI extends JFrame {
                     MainGUI.this.showNextCard();
                 }
             }
+        });
+
+        // File -> Settings
+        settingsMenuItem.addActionListener(e -> {
+            JDialog settingsFrame = new Settings("Settings", MainGUI.this);
+            settingsFrame.setVisible(true);
         });
 
         // Edit -> Add new card.

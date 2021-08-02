@@ -222,6 +222,21 @@ public class CardsManager {
         }
     }
 
+    public void deleteAllCards() {
+        try {
+            openConnection();
+            con.setAutoCommit(false);
+            Statement state = con.createStatement();
+            state.executeUpdate("DELETE FROM cards");
+            state = con.createStatement();
+            state.executeUpdate("DELETE FROM interactions");
+            con.commit();
+            con.setAutoCommit(true);
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void resetAllInteractions() {
         try {
             openConnection();
@@ -346,7 +361,7 @@ public class CardsManager {
                 ps2.executeUpdate();
                 con.commit();
                 con.setAutoCommit(true);
-                System.out.println("Update completed.");
+                System.out.println("Card removed successfully.");
             } catch (SQLException | ClassNotFoundException e) {
                 e.printStackTrace();
             }

@@ -1,5 +1,4 @@
 import javax.swing.*;
-import javax.swing.filechooser.FileFilter;
 import java.io.File;
 
 public class MainGUI extends JFrame {
@@ -23,7 +22,7 @@ public class MainGUI extends JFrame {
     private JMenuItem settingsMenuItem;
     private JMenu editMenu;
     private JMenuItem addNewCardMenuItem;
-    private JMenuItem editCurrentCard;
+    private JMenuItem editCurrentCardMenuItem;
     private JMenuItem removeCurrentCardMenuItem;
     private JMenuItem exportCardsMenuItem;
     private JMenuItem deleteAllCardsMenuItem;
@@ -86,8 +85,8 @@ public class MainGUI extends JFrame {
         editMenu = new JMenu("Edit");
         addNewCardMenuItem = new JMenuItem("Add new card");
         editMenu.add(addNewCardMenuItem);
-        editCurrentCard = new JMenuItem("Edit current card");
-        editMenu.add(editCurrentCard);
+        editCurrentCardMenuItem = new JMenuItem("Edit current card");
+        editMenu.add(editCurrentCardMenuItem);
         removeCurrentCardMenuItem = new JMenuItem("Remove current card");
         editMenu.add(removeCurrentCardMenuItem);
     }
@@ -180,7 +179,7 @@ public class MainGUI extends JFrame {
         });
 
         // Edit -> Edit current card.
-        editCurrentCard.addActionListener(e -> {
+        editCurrentCardMenuItem.addActionListener(e -> {
             String[] card = new CardEditDialog(MainGUI.this, this.currentCard).showDialog();
             if (card != null) {
                 this.currentCard.updateCard(card[0], card[1]);
@@ -240,6 +239,8 @@ public class MainGUI extends JFrame {
             this.remainingCardLabel.setText("");
             hideDashboard();
             this.exposeAnswerButton.setVisible(false);
+            this.editCurrentCardMenuItem.setEnabled(false);
+            this.removeCurrentCardMenuItem.setEnabled(false);
         } else {
             this.questionDescription.setText("<html><div style=\"width: 300px;\"><h1>"+card.getQuestion()+"</h1></div></html>");
             this.questionAnswer.setText("<html><div style=\"width: 300px;\">"+card.getAnswer()
@@ -253,6 +254,8 @@ public class MainGUI extends JFrame {
                     "<html><div style=\"width: 160px\">This card has %.1f%% success rate.</div></html>",
                     card.getSuccessRate() * 100));
             exposeDashboard();
+            this.editCurrentCardMenuItem.setEnabled(true);
+            this.removeCurrentCardMenuItem.setEnabled(true);
         }
     }
 }

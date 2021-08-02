@@ -9,6 +9,7 @@ public class CardsManager {
     private Connection con;
     private boolean hasData = false;
     ResultSet cardsQueue;
+    PreparedStatement interactionStatement = null;
 
     public CardsManager() {
         refreshQueue();
@@ -17,12 +18,16 @@ public class CardsManager {
     private void openConnection() throws ClassNotFoundException, SQLException {
         if (con == null) {
             Class.forName("org.sqlite.JDBC");
-            con = DriverManager.getConnection("jdbc:sqlite:data.db");
+            con = DriverManager.getConnection("jdbc:sqlite:data.sqlite");
             initialise();
         }
     }
 
     public void closeConnection() throws SQLException {
+        if (interactionStatement != null) {
+            interactionStatement.close();
+            interactionStatement = null;
+        }
         if (con != null) {
             con.close();
             con = null;
@@ -46,7 +51,6 @@ public class CardsManager {
                 """);
 
             System.out.println("Creating interactions table.");
-            state2 = con.createStatement();
             state2.execute("""
                 CREATE TABLE IF NOT EXISTS "interactions" (
                 	"id"	INTEGER NOT NULL UNIQUE,
@@ -57,6 +61,7 @@ public class CardsManager {
                 );
                 """);
             con.commit();
+            state2.close();
             con.setAutoCommit(true);
         }
     }
@@ -109,6 +114,9 @@ public class CardsManager {
             ps.setInt(3, Integer.parseInt(Settings.config.getProperty("waitAfterInteraction")));
             ps.setDouble(4, Double.parseDouble(Settings.config.getProperty("successRateThreshold")));
             ps.setInt(5, Integer.parseInt(Settings.config.getProperty("maxWaitAfterInteraction")));
+            if (this.cardsQueue != null) {
+                cardsQueue.close();
+            }
             cardsQueue = ps.executeQuery();
         } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
@@ -122,6 +130,12 @@ public class CardsManager {
                 System.out.println(result);
                 return result;
             }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        try {
+            this.cardsQueue.close();
+            this.closeConnection();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -142,6 +156,7 @@ public class CardsManager {
             if (rs.next()) {
                 id = rs.getInt(1);
             }
+            ps.close();
         } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -169,6 +184,7 @@ public class CardsManager {
             reader.close();
             con.commit();
             con.setAutoCommit(true);
+            ps.close();
         } catch (IOException | SQLException | ClassNotFoundException | CsvValidationException e) {
             e.printStackTrace();
             try {
@@ -216,6 +232,19 @@ public class CardsManager {
             ps.setLong(1, until);
             ps.setLong(2, from);
             ps.execute();
+            ps.close();
+            System.out.println("Reset completed.");
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void resetAllInteractions() {
+        try {
+            openConnection();
+            Statement statement = con.createStatement();
+            statement.executeUpdate("DELETE FROM interactions");
+            statement.close();
             System.out.println("Reset completed.");
         } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
@@ -232,17 +261,7 @@ public class CardsManager {
             state.executeUpdate("DELETE FROM interactions");
             con.commit();
             con.setAutoCommit(true);
-        } catch (SQLException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void resetAllInteractions() {
-        try {
-            openConnection();
-            PreparedStatement ps = con.prepareStatement("DELETE FROM interactions");
-            ps.execute();
-            System.out.println("Reset completed.");
+            state.close();
         } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -313,12 +332,14 @@ public class CardsManager {
         public void interact(double interactionResult) {
             try {
                 openConnection();
-                PreparedStatement ps = con.prepareStatement("""
+                if (interactionStatement == null) {
+                    interactionStatement = con.prepareStatement("""
                     INSERT INTO interactions (cardID, result, time) VALUES(?, ?, strftime('%s', 'now'));
                     """);
-                ps.setInt(1, this.getID());
-                ps.setDouble(2, interactionResult);
-                ps.execute();
+                }
+                interactionStatement.setInt(1, this.getID());
+                interactionStatement.setDouble(2, interactionResult);
+                interactionStatement.execute();
                 ++this.totalInteractions;
                 this.successfulInteractions += interactionResult;
                 System.out.println("Interaction completed.");
@@ -343,6 +364,7 @@ public class CardsManager {
                 ps.setString(2, this.answer);
                 ps.setInt(3, this.ID);
                 ps.executeUpdate();
+                ps.close();
                 System.out.println("Update completed.");
             } catch (SQLException | ClassNotFoundException e) {
                 e.printStackTrace();
@@ -356,10 +378,13 @@ public class CardsManager {
                 PreparedStatement ps1 = con.prepareStatement("DELETE FROM cards WHERE cards.id = ?");
                 ps1.setInt(1, this.ID);
                 ps1.executeUpdate();
+                ps1.close();
                 PreparedStatement ps2 = con.prepareStatement("DELETE FROM interactions WHERE interactions.cardID = ?");
                 ps2.setInt(1, this.ID);
                 ps2.executeUpdate();
                 con.commit();
+                ps1.close();
+                ps2.close();
                 con.setAutoCommit(true);
                 System.out.println("Card removed successfully.");
             } catch (SQLException | ClassNotFoundException e) {

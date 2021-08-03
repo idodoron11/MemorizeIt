@@ -4,7 +4,6 @@ import com.opencsv.exceptions.CsvValidationException;
 
 import java.io.*;
 import java.sql.*;
-import java.util.Queue;
 
 public class CardsManager {
     private Connection con;

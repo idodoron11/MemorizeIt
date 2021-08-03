@@ -5,7 +5,8 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Random;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CardsManagerTest {
 

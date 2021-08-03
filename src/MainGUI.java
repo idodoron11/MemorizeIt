@@ -124,7 +124,7 @@ public class MainGUI extends JFrame {
 
         // File -> Export cards to csv.
         exportCardsMenuItem.addActionListener(e -> {
-            JFileChooser fc = new JFileChooser();
+            JFileChooser fc = new Utils.SaveDialogWithConfirmation();
             fc.setFileFilter(Utils.csvFileFilter);
             int returnVal = fc.showSaveDialog(MainGUI.this);
             if (returnVal == JFileChooser.APPROVE_OPTION) {

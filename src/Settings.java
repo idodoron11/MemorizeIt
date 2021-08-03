@@ -15,6 +15,11 @@ public class Settings extends JDialog{
     private JSpinner interactionsFocusInput;
     private boolean APISettingsChanged;
 
+    final static File configFile = new File("user.properties");
+    final static File defaultConfigFile = new File("default.properties");
+    final static Properties defaultConfig = new Properties();
+    static Properties config;
+
     public Settings(String title, MainGUI parent) {
         super(parent);
         this.setModal(true);
@@ -55,12 +60,15 @@ public class Settings extends JDialog{
         cancelButton.addActionListener(e -> Settings.super.dispose());
     }
 
-    final static File configFile = new File("user.properties");
-    final static File defaultConfigFile = new File("default.properties");
-    final static Properties defaultConfig = new Properties();
-    static Properties config;
-
     public static void loadConfiguration() throws IOException {
+        try (FileWriter fw = new FileWriter(defaultConfigFile)) {
+            fw.write("""
+                    waitAfterInteraction=1
+                    maxWaitAfterInteraction=3
+                    successRateThreshold=80
+                    interactionsFocus=20
+                    """);
+        }
         FileReader defaultConfigFileReader = new FileReader(defaultConfigFile);
         defaultConfig.load(defaultConfigFileReader);
         defaultConfigFileReader.close();

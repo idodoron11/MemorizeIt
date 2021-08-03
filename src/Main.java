@@ -1,4 +1,6 @@
 import javax.swing.*;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 
 public class Main {
@@ -11,12 +13,12 @@ public class Main {
         }
         try {
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            /*for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }*/
+        /*for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+            if ("Nimbus".equals(info.getName())) {
+                UIManager.setLookAndFeel(info.getClassName());
+                break;
+            }
+        }*/
         } catch (Exception e) {
             e.printStackTrace();
         }

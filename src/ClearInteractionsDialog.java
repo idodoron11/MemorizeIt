@@ -1,6 +1,10 @@
 import javax.swing.*;
 import java.util.Date;
 
+/**
+ * This dialog is used for deleting cards interaction records.
+ */
+
 public class ClearInteractionsDialog extends JDialog {
     private JSpinner fromInput;
     private JSpinner untilInput;
@@ -8,6 +12,7 @@ public class ClearInteractionsDialog extends JDialog {
     private JButton resetALLInteractionsButton;
     private JPanel mainPanel;
     private JButton cancelButton;
+    private long[] APIClearParameters;
 
     public ClearInteractionsDialog(MainGUI owner) {
         super(owner, true);
@@ -27,11 +32,8 @@ public class ClearInteractionsDialog extends JDialog {
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.QUESTION_MESSAGE);
             if (result == JOptionPane.YES_NO_OPTION) {
-                MainGUI parent = (MainGUI) ClearInteractionsDialog.this.getParent();
-                parent.mgr.resetAllInteractions();
-                ClearInteractionsDialog.super.dispose();
-                parent.mgr.queue.refreshQueue();
-                parent.showNextCard();
+                this.APIClearParameters = new long[] {-1};
+                dispose();
             }
         });
         removeButton.addActionListener(e -> {
@@ -41,14 +43,26 @@ public class ClearInteractionsDialog extends JDialog {
                     JOptionPane.YES_NO_OPTION,
                     JOptionPane.QUESTION_MESSAGE);
             if (result == JOptionPane.YES_NO_OPTION) {
-                MainGUI parent = (MainGUI) ClearInteractionsDialog.this.getParent();
                 Date fromDate = (Date) fromInput.getValue();
                 Date untilDate = (Date) untilInput.getValue();
-                parent.mgr.resetInteractions(fromDate.getTime() / 1000, untilDate.getTime() / 1000);
-                ClearInteractionsDialog.super.dispose();
-                parent.mgr.queue.refreshQueue();
-                parent.showNextCard();
+                this.APIClearParameters = new long[] {
+                        fromDate.getTime() / 1000,
+                        untilDate.getTime() / 1000
+                };
+                dispose();
             }
         });
+    }
+
+    /**
+     * Opens a new ClearInteractions dialog and returns the relevant input
+     * @return null : if the user canceled the reset operation.
+     *          Long[] {fromTime, untilTime} : if the user limited the reset to a range of dates.
+     *          Long[] {-1} : if the user asked to reset all the interactions ever recorded.
+     */
+    public long[] showDialog() {
+        this.APIClearParameters = null;
+        this.setVisible(true);
+        return APIClearParameters;
     }
 }

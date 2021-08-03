@@ -13,6 +13,7 @@ public class Settings extends JDialog{
     private JSpinner maxWaitAfterInteractionInput;
     private JSpinner successRateThresholdInput;
     private JSpinner interactionsFocusInput;
+    private boolean APISettingsChanged;
 
     public Settings(String title, MainGUI parent) {
         super(parent);
@@ -47,8 +48,9 @@ public class Settings extends JDialog{
                 saveConfiguration();
             } catch (IOException | NumberFormatException exp) {
                 exp.printStackTrace();
+            } finally {
+                Settings.super.dispose();
             }
-            Settings.super.dispose();
         });
         cancelButton.addActionListener(e -> Settings.super.dispose());
     }
@@ -74,12 +76,20 @@ public class Settings extends JDialog{
         saveConfiguration();
     }
 
-    public void saveConfiguration() throws IOException {
+    private void saveConfiguration() throws IOException {
         Writer fw = new FileWriter(configFile);
         config.store(fw, "Saved Settings");
         fw.close();
-        MainGUI parent = (MainGUI) this.getOwner();
-        parent.mgr.queue.refreshQueue();
-        parent.showNextCard();
+        this.APISettingsChanged = true;
+    }
+
+    /***
+     * Opens a new Settings dialog instance.
+     * @return true iff settings have changed.
+     */
+    public boolean showDialog() {
+        this.APISettingsChanged = false;
+        this.setVisible(true);
+        return this.APISettingsChanged;
     }
 }

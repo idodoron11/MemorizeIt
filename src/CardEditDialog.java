@@ -1,6 +1,10 @@
 import javax.swing.*;
 import java.awt.*;
 
+/**
+ * This dialog is used both for inserting new cards and updating existing ones.
+ */
+
 public class CardEditDialog extends JDialog {
     private JTextField questionInput;
     private JTextArea answerInput;
@@ -34,6 +38,10 @@ public class CardEditDialog extends JDialog {
         commitButton.setText("Add Card");
     }
 
+    /**
+     * Opens a new CardEdit dialog instance and returns the relevant data from the user input.
+     * @return String array of size 2. The first item is the question description, and the second item is the answer.
+     */
     public String[] showDialog() {
         this.setVisible(true);
         return this.APIResult;

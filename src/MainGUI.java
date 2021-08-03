@@ -13,7 +13,7 @@ public class MainGUI extends JFrame {
     private JLabel remainingCardLabel;
     private JLabel successRateLabel;
     private JScrollPane answerWrapper;
-    final CardsManager mgr = new CardsManager();
+    private final CardsManager mgr = new CardsManager();
     private CardsManager.Card currentCard;
     private JMenuBar topMenu;
     private JMenu fileMenu;
@@ -94,8 +94,18 @@ public class MainGUI extends JFrame {
     private void setupMenuBarActionListeners() {
         // File -> Reset interactions history
         clearInteractionsMenuItem.addActionListener(e -> {
-            JDialog clearInteractionsFrame = new ClearInteractionsDialog(MainGUI.this);
-            clearInteractionsFrame.setVisible(true);
+            long[] result = new ClearInteractionsDialog(MainGUI.this).showDialog();
+            if (result != null) {
+                if (result[0] == -1) {
+                    // Clear all interactions
+                    this.mgr.resetAllInteractions();
+                } else {
+                    // Clear interactions in range
+                    this.mgr.resetInteractions(result[0], result[1]);
+                }
+                this.mgr.queue.refreshQueue();
+                this.showNextCard();
+            }
         });
 
         // File -> Permanently delete all cards
@@ -164,8 +174,11 @@ public class MainGUI extends JFrame {
 
         // File -> Settings
         settingsMenuItem.addActionListener(e -> {
-            JDialog settingsFrame = new Settings("Settings", MainGUI.this);
-            settingsFrame.setVisible(true);
+            if(new Settings("Settings", MainGUI.this).showDialog()) {
+                // Settings changed, and so we need to refresh the screen.
+                this.mgr.queue.refreshQueue();
+                this.showNextCard();
+            }
         });
 
         // Edit -> Add new card.
@@ -201,36 +214,36 @@ public class MainGUI extends JFrame {
         });
     }
 
-    public void exposeAnswer() {
+    private void exposeAnswer() {
         this.exposeAnswerButton.setVisible(false);
         this.answerWrapper.setVisible(true);
         this.questionAnswer.setVisible(true);
     }
 
-    public void hideAnswer() {
+    private void hideAnswer() {
         this.exposeAnswerButton.setVisible(true);
         this.answerWrapper.setVisible(false);
         this.questionAnswer.setVisible(false);
     }
 
-    public void exposeDashboard() {
+    private void exposeDashboard() {
         this.wellButton.setVisible(true);
         this.badButton.setVisible(true);
         this.vagueButton.setVisible(true);
     }
 
-    public void hideDashboard() {
+    private void hideDashboard() {
         this.wellButton.setVisible(false);
         this.badButton.setVisible(false);
         this.vagueButton.setVisible(false);
     }
 
-    public void showNextCard() {
+    private void showNextCard() {
         currentCard = mgr.queue.getNextCard();
         showCard(currentCard);
     }
 
-    public void showCard(CardsManager.Card card) {
+    private void showCard(CardsManager.Card card) {
         hideAnswer();
         if (card == null) {
             this.questionDescription.setText("<html><div style=\"width: 300px;\"><h2>There are no more questions for now. Please come back later.</h2></div></html>");

@@ -1,6 +1,6 @@
 # MemorizeIt
 
-MemorizeIt is a simple cross-platform open-source Java application, that helps memorizing facts using flash-cards. It is fully customizable and can be adapted for various goals, such as learning a new language, studying to a test and so on.
+**MemorizeIt** is a simple cross-platform open-source Java application, that helps memorizing facts using flashcards. The users are shown a series of cards, which of each is composed of a questions and an answer. Initially, the answer is hidden so the users can have a chance to recall the answer. Then, they may expose the answer to verify themselves. Accordingly, they should rate how well they remembered the card's answer. This feedback helps the app focus on the hardest to remember cards. The app can be adapted to achieve various goals, such as learning a new language, studying for a test and so on.
 
 ## Features
 
@@ -14,6 +14,7 @@ MemorizeIt is a simple cross-platform open-source Java application, that helps m
 * Clear the current card set in seconds to load or create a different one.
 * Lightweight and fast.
 * Simple interface.
+* Fully customizable.
 * No internet connection required.
 * No trackers.
 * No ads.
